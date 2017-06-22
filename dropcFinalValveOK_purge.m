@@ -63,15 +63,11 @@ else
 end
 dropcUpdateDraqPort(handles);
 
-%Divert final valve towards the exhaust, noise, and purge valve towards the port
+%Divert final valve towards the exhaust 
+%Divert purge valve towards the port 
 dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
-if handles.dropcProg.makeNoise==1
-    dataValue = dataValue+handles.dropcDioOut.noise;
-end
 dataValue=bitcmp(dataValue);
-
 putvalue(handles.dio.Line(17:24),dataValue);
-
 
 
 %Turn on odor valve
@@ -80,16 +76,6 @@ dataValue=bitcmp(uint8(dataValue));
 
 putvalue(handles.dio.Line(1:8),dataValue);
 
-
-
-%Turn on background valve if needed
-%     if handles.dropcProg.backgroundOdor==1
-%         dataValue=handles.dropcDioOut.background_valve;
-%         dataValue=bitcmp(dataValue);
-%
-%         putvalue(handles.dio.Line(9:16),dataValue);
-%
-%     end
 
 
 

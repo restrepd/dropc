@@ -14,20 +14,20 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Behavior\Desktop\Justin\test5';
+handles.dropcProg.output_file='C:\Users\restrepo\Desktop\amber\062217_test3b_purge';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(4); %Make sure to use int8
-handles.dropcProg.splusName='Mineral oil';
+handles.dropcProg.splusOdorValve=uint8(8); %Make sure to use int8
+handles.dropcProg.splusName='iso';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.sminusName='Isoamyl acetate';
+handles.dropcProg.sminusOdorValve=uint8(4); %Make sure to use int8
+handles.dropcProg.sminusName='mo';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1.5;
@@ -46,6 +46,9 @@ handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
 handles.dropcProg.rfTime=0.3;
+
+%Enter final purge time
+handles.dropcProg.finalPurgeTime=1;
 
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -253,7 +256,9 @@ if run_program==1
                         putvalue(handles.dio.Line(9:12),dataValue);
                     end
                     
-                    dropcTurnValvesOffNow(handles);
+                    start_reinf_time=toc;
+                    dropcPurgeOdorOffNow(handles);
+                    
                     handles.dropcData.trialTime(handles.dropcData.trialIndex)=toc;
                     handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.typeOfOdor;
                     handles.dropcData.odorValve(handles.dropcData.trialIndex)=handles.dropcProg.odorValve;
@@ -270,8 +275,12 @@ if run_program==1
                     end
                     
                     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
+                    
+                    while toc-start_reinf_time<handles.dropcProg.finalPurgeTime   
+                    end
+                    
                     dropcTurnValvesOffNow(handles);
-                    dropcPurgeNow(handles);
+     
                     %Mouse must leave
 
                     while dropcNosePokeNow(handles)==1
