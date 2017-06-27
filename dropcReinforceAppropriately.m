@@ -140,7 +140,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
             if rand(1)<=handles.dropcProg.fracReinforcement(2)
 
 
-                reinforceNow(handles);
+                dropcReinforceNow(handles);
                 handles.dropcData.isReinforced(handles.dropcData.trialIndex)=1;
 
             else
