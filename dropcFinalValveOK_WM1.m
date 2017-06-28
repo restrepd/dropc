@@ -31,29 +31,18 @@ if (handles.dropcProg.whenOptoOn==1)
     putvalue(handles.dio.Line(9:12),dataValue);
     opto_on=1;
     handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
-    %         end
-    %end
-   
 end
 
 %Notify draq
 if opto_on==0
-    if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.s_plus;
-    else
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
-    end
+    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
 else
-    if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on+handles.dropcDraqOut.s_plus;
-    else
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
-    end
+    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
 end
 dropcUpdateDraqPort(handles);
 
-%Divert final valve towards the exhaust 
-%Divert purge valve towards the port 
+%Divert final valve towards the exhaust
+%Divert purge valve towards the port
 dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
 dataValue=bitcmp(dataValue);
 putvalue(handles.dio.Line(17:24),dataValue);
@@ -83,7 +72,7 @@ opto_on=0;
 
 %If this is not a short then give the light
 if (noSamplesMouseOn/noSamples) > 0.2
-
+    
     if handles.dropcProg.whenOptoOn==2
         if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
             %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
@@ -99,21 +88,12 @@ if (noSamplesMouseOn/noSamples) > 0.2
     
 end
 
-%Notify draq of odor onset
-
+%Notify draq of odor 1
 %Notify draq
 if opto_on==0
-    if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor_onset+handles.dropcDraqOut.s_plus;
-    else
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor_onset;
-    end
+    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor1;
 else
-    if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor_onset+handles.dropcDraqOut.opto_on+handles.dropcDraqOut.s_plus;
-    else
-        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor_onset+handles.dropcDraqOut.opto_on;
-    end
+    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor1+handles.dropcDraqOut.opto_on;
 end
 
 
@@ -133,16 +113,14 @@ end
 
 
 
-
-
 if (fvtime<0.3)
     finalValveOK=1;
 else
-
+    
     if (noSamplesMouseOn/noSamples) > 0.2
         finalValveOK=1;
     else
         finalValveOK=0;
     end
 end
-end
+

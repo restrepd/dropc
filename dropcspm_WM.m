@@ -53,6 +53,9 @@ handles.dropcProg.finalPurgeTime=1;
 %Enter delay interval
 handles.dropcProg.delayInterval=1;
 
+%Enter punish interval
+handles.dropcProg.punishInterval=10;
+
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
 handles.dropcProg.timePerTrial=8;
@@ -111,16 +114,11 @@ handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
 
 %Set the numbers for digital output to DT3010
-handles.dropcDraqOut.final_valve=uint8(6);
+handles.dropcDraqOut.final_valve=uint8(1);
 handles.dropcDraqOut.opto_on=uint8(64);
-handles.dropcDraqOut.s_plus=uint8(1);
-handles.dropcDraqOut.odor_onset=uint8(18);
-handles.dropcDraqOut.short_before=uint8(2);
-handles.dropcDraqOut.short_after=uint8(4);
-handles.dropcDraqOut.hit=uint8(8);
-handles.dropcDraqOut.miss=uint8(10);
-handles.dropcDraqOut.correct_rejection=uint8(12);
-handles.dropcDraqOut.false_alarm=uint8(14);
+handles.dropcDraqOut.odorA=uint8(2);
+handles.dropcDraqOut.odorB=uint8(4);
+handles.dropcDraqOut.short=uint8(8);
 handles.dropcDraqOut.draq_trigger=uint8(128);
 handles.dropcDraqOut.reinforcement=uint8(16);
 
@@ -159,19 +157,6 @@ else
     dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
-% dropcProg.fracReinforcement(3)=0.5;
-% dropcProg.fracReinforcement(4)=1.0;
-
-% %Setup transition to partial reinforcement
-% if (transitionToPartial==1)
-%     if (afterCriterion==0)
-%         handles.dropcProg.fracReinforcement(1)=0.7;
-%         handles.dropcProg.fracReinforcement(3)=0.7;
-%         if (reinforceodor_b_==1)
-%             handles.dropcProg.fracReinforcement(2)=0.7;
-%         end
-%     end
-% end
 
 
 
@@ -215,11 +200,13 @@ if run_program==1
             %odor a
             handles.dropcProg.odorValve1=handles.dropcProg.odor_a_OdorValve;
             handles.dropcProg.typeOfOdor1=handles.dropcProg.odor_a_Odor;
+            handles.dropcDraqOut.odor1=handles.dropcDraqOut.odorA;
             disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor A'])
         else
             %odor b
             handles.dropcProg.odorValve1=handles.dropcProg.odor_b_OdorValve;
             handles.dropcProg.typeOfOdor1=handles.dropcProg.odor_b_Odor;
+            handles.dropcDraqOut.odor1=handles.dropcDraqOut.odorB;
             disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor B'])
         end
         
@@ -228,11 +215,13 @@ if run_program==1
             %odor a
             handles.dropcProg.odorValve2=handles.dropcProg.odor_a_OdorValve;
             handles.dropcProg.typeOfOdor2=handles.dropcProg.odor_a_Odor;
+            handles.dropcDraqOut.odor2=handles.dropcDraqOut.odorA;
             disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor A'])
         else
             %odor b
             handles.dropcProg.odorValve2=handles.dropcProg.odor_b_OdorValve;
             handles.dropcProg.typeOfOdor2=handles.dropcProg.odor_b_Odor;
+            handles.dropcDraqOut.odor2=handles.dropcDraqOut.odorB;
             disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor B'])
         end
         
@@ -258,6 +247,10 @@ if run_program==1
                 this_time=toc;
                 while toc-this_time<handles.dropcProg.odorTime
                 end
+                
+                %Turn off draq
+                handles.dropcDigOut.draqPortStatus=0;
+                dropcUpdateDraqPort(handles);
                 
                 %Now purge out odor 1 and bring in odor 2 to the final
                 %valve
@@ -287,6 +280,10 @@ if run_program==1
                 dataValue=bitcmp(uint8(0));
                 putvalue(handles.dio.Line(17:24),dataValue);
                 
+                %Notify draq of odor 2
+                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor2;
+                dropcUpdateDraqPort(handles);
+                
                 %Wait for the end of odor 2
                 this_time=toc;
                 while toc-this_time<handles.dropcProg.odorTime
@@ -300,6 +297,10 @@ if run_program==1
                 
                 %Turn off all odor valves
                 dropcTurnValvesOffNow(handles);
+                
+                %Turn off draq
+                handles.dropcDigOut.draqPortStatus=0;
+                dropcUpdateDraqPort(handles);
                 
                 
                 end_toc=toc+handles.dropcProg.must_lick_dt;
@@ -315,9 +316,21 @@ if run_program==1
                 
                 was_reinforced=0;
                 if handles.dropcProg.odorValve1~=handles.dropcProg.odorValve2
-                    if didLick==1
+                    if didLick==1 
+                        %Notify draq of reinforcement
+                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
+                        dropcUpdateDraqPort(handles);
                         dropcReinforceNow(handles);
-                         was_reinforced=1;
+                        was_reinforced=1;
+                        
+                        %Turn off draq
+                        handles.dropcDigOut.draqPortStatus=0;
+                        dropcUpdateDraqPort(handles);
+                    else
+                        %Punish mouse for lack of response to nonmatch
+                        start_toc=toc;
+                        while toc-start_toc<handles.dropcProg.punishInterval
+                        end
                     end
                 end
                 
@@ -325,6 +338,13 @@ if run_program==1
                     disp('Reinforced')
                 else
                     disp('Not reinforced')
+                end
+                
+                handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
+                
+                %Mouse must leave
+                
+                while dropcNosePokeNow(handles)==1
                 end
                 
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
@@ -337,6 +357,7 @@ if run_program==1
                 disp('End of full tiral')
                 
             else
+                %This is a short
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=2;
                 handles.dropcData.allTrialdidLick(handles.dropcData.allTrialIndex)=0;
@@ -347,6 +368,21 @@ if run_program==1
                 handles.dropcData.allTrialOdor2(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor2;
                 
                 disp('Short')
+                
+                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.short;
+                dropcUpdateDraqPort(handles);
+                
+                start_toc=toc;
+                while toc-start_toc<1
+                end
+                
+                handles.dropcDigOut.draqPortStatus=0;
+                dropcUpdateDraqPort(handles);
+                
+                %Punish mouse for short
+                while toc-start_toc<handles.dropcProg.punishInterval
+                end
+                
             end
         end
         
