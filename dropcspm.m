@@ -38,7 +38,7 @@ handles.dropcProg.shortTime=0.5;
 %Enter number of response area segments (usually 4, must be less than 6)
 handles.dropcProg.noRAsegments=4;
 
-%Enter response area DT for each rasponse area segment (0.5 sec is usual)
+%Enter response area DT for each response area segment (0.5 sec is usual)
 handles.dropcProg.dt_ra=0.5;
 
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
@@ -248,7 +248,7 @@ if run_program==1
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
                 handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
-
+                handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
                 if (trialResult~=2)
                     %This is a go
                     

@@ -14,7 +14,7 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\restrepo\Desktop\amber\062217_test3b_purge';
+handles.dropcProg.output_file='C:\Users\restrepo\Desktop\amber\062917_test1b_WM';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
@@ -296,7 +296,8 @@ if run_program==1
                 putvalue(handles.dio.Line(17:24),dataValue);
                 
                 %Turn off all odor valves
-                dropcTurnValvesOffNow(handles);
+                putvalue(handles.dio.Line(1:8),uint8(255));
+
                 
                 %Turn off draq
                 handles.dropcDigOut.draqPortStatus=0;
@@ -339,6 +340,16 @@ if run_program==1
                 else
                     disp('Not reinforced')
                 end
+                
+                start_toc=toc;
+                while toc-start_toc<handles.dropcProg.fvtime
+                end
+                
+                %Divert final valve towards the port
+                %Divert purge valve towards exhaust
+                putvalue(handles.dio.Line(17:24),uint8(255));
+                
+               
                 
                 handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
                 
@@ -388,62 +399,62 @@ if run_program==1
         
         %Output record of trial performance
         
-        if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.odor_a_Odor
-            if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
-            else
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
-            end
-        else
-            if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
-            else
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
-            end
-        end
+%         if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.odor_a_Odor
+%             if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
+%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+%             else
+%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
+%             end
+%         else
+%             if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
+%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
+%             else
+%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+%             end
+%         end
+%         
+%         if rem(handles.dropcData.trialIndex,20)==1
+%             handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance ' '];
+%         end
+%         
+%         dropcDisplayOutString(handles.dropcData.trialPerformance)
         
-        if rem(handles.dropcData.trialIndex,20)==1
-            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance ' '];
-        end
-        
-        dropcDisplayOutString(handles.dropcData.trialPerformance)
-        
-        if handles.dropcData.trialIndex-1>=20
-            for trialNo=1:handles.dropcData.trialIndex-1
-                if handles.dropcData.odorType(trialNo)==handles.dropcProg.odor_a_Odor
-                    if handles.dropcData.trialScore(trialNo)==1
-                        correctTrial(trialNo)=1;
-                    else
-                        correctTrial(trialNo)=0;
-                    end
-                else
-                    if handles.dropcData.trialScore(trialNo)==1
-                        correctTrial(trialNo)=0;
-                    else
-                        correctTrial(trialNo)=1;
-                    end
-                end
-            end
-            
-            max_block=floor((handles.dropcData.trialIndex-1)/20);
-            if handles.dropcData.trialIndex>1
-                if rem((handles.dropcData.trialIndex-1),20)==1
-                    block=block+1;
-                    percent_correct(block)= 100*sum(correctTrial((block-1)*20+1:block*20))/20;
-                    percent_corr_str=[percent_corr_str num2str(percent_correct(block)) ' '];
-                end
-            end
-            
-            %             blockNo=1:max_block;
-            %             plot(blockNo,percent_correct,'x-r')
-            %             xlim([0 11])
-            %             ylim([40 110])
-            %             ylabel('Percent correct')
-            %             xlabel('Block No')
-            %             title('Percent correct')
-            %percent_corr=percent_correct
-            disp(percent_corr_str)
-        end
+%         if handles.dropcData.trialIndex-1>=20
+%             for trialNo=1:handles.dropcData.trialIndex-1
+%                 if handles.dropcData.odorType(trialNo)==handles.dropcProg.odor_a_Odor
+%                     if handles.dropcData.trialScore(trialNo)==1
+%                         correctTrial(trialNo)=1;
+%                     else
+%                         correctTrial(trialNo)=0;
+%                     end
+%                 else
+%                     if handles.dropcData.trialScore(trialNo)==1
+%                         correctTrial(trialNo)=0;
+%                     else
+%                         correctTrial(trialNo)=1;
+%                     end
+%                 end
+%             end
+%             
+%             max_block=floor((handles.dropcData.trialIndex-1)/20);
+%             if handles.dropcData.trialIndex>1
+%                 if rem((handles.dropcData.trialIndex-1),20)==1
+%                     block=block+1;
+%                     percent_correct(block)= 100*sum(correctTrial((block-1)*20+1:block*20))/20;
+%                     percent_corr_str=[percent_corr_str num2str(percent_correct(block)) ' '];
+%                 end
+%             end
+%             
+%             %             blockNo=1:max_block;
+%             %             plot(blockNo,percent_correct,'x-r')
+%             %             xlim([0 11])
+%             %             ylim([40 110])
+%             %             ylabel('Percent correct')
+%             %             xlabel('Block No')
+%             %             title('Percent correct')
+%             %percent_corr=percent_correct
+%             disp(percent_corr_str)
+%         end
         
         
         save(handles.dropcProg.output_file,'handles');
