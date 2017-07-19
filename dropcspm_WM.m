@@ -317,9 +317,9 @@ if run_program==1
                 
                 was_reinforced=0;
                 if handles.dropcProg.odorValve1~=handles.dropcProg.odorValve2
-                    if didLick==1 
+                    if didLick==1
                         %Notify draq of reinforcement
-                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
+                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement+handles.dropcDraqOut.draq_trigger;
                         dropcUpdateDraqPort(handles);
                         dropcReinforceNow(handles);
                         was_reinforced=1;
@@ -329,10 +329,31 @@ if run_program==1
                         dropcUpdateDraqPort(handles);
                     else
                         %Punish mouse for lack of response to nonmatch
+                        
+                        %Trigger
+                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
+                        dropcUpdateDraqPort(handles);
+                        start_time=toc;
+                        while (toc-start_time<handles.dropcProg.rfTime)
+                        end
+                        %Turn off draq
+                        handles.dropcDigOut.draqPortStatus=0;
+                        dropcUpdateDraqPort(handles);
+                        
                         start_toc=toc;
                         while toc-start_toc<handles.dropcProg.punishInterval
                         end
                     end
+                else
+                    %Trigger
+                    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
+                    dropcUpdateDraqPort(handles);
+                    start_time=toc;
+                    while (toc-start_time<handles.dropcProg.rfTime)
+                    end
+                    %Turn off draq
+                    handles.dropcDigOut.draqPortStatus=0;
+                    dropcUpdateDraqPort(handles);
                 end
                 
                 if was_reinforced==1
