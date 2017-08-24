@@ -14,7 +14,7 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\restrepo\Desktop\Amber\052517-Purge-test2';
+handles.dropcProg.output_file='C:\Users\Diego Restrepo\Desktop\FCM\test.mat';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
@@ -82,6 +82,7 @@ handles.comment='Test';
 %% Initialize variables that the user will not change
 
 handles.dropcData.trialPerformance=[];
+handles.dropcData.ii_lick=[];
 percent_corr_str=[];
 block=0;
 
@@ -237,7 +238,7 @@ if run_program==1
             %Wait till the mouse pokes into the sampling chamber
             while (dropcNosePokeNow(handles)==0)
             end
-
+            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
             if (dropcFinalValveOK(handles)==1)
                 %This mouse stayed on during the final valve; do the
                 %single trial!
