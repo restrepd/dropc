@@ -1,3 +1,4 @@
+%This is a delayed non match to sample task
 %% Close all
 clear all
 close all
@@ -14,35 +15,29 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Diego Restrepo\Desktop\FCM\test.mat';
+handles.dropcProg.output_file='C:\Users\restrepo\Desktop\Amber\052517-Purge-test2';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
-%Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
+%Reinforce on odorA only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(8); %Make sure to use int8
-handles.dropcProg.splusName='EA';
+%Enter odorA valve (1,2,4,8,16,32,64,128) and odor name
+handles.dropcProg.odorA_OdorValve=uint8(8); %Make sure to use int8
+handles.dropcProg.odorA_Name='EA';
 
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(4); %Make sure to use int8
-handles.dropcProg.sminusName='PA';
+%Enter odorB valve (1,2,4,8,16,32,64,128) and odor name
+handles.dropcProg.odorB_OdorValve=uint8(4); %Make sure to use int8
+handles.dropcProg.odorB_Name='PA';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1.5;
 
-%Enter time interval for short trial test (0.5 sec is usual)
-handles.dropcProg.shortTime=0.5;
+%Enter time interval for odors A a nd B
+handles.dropcProg.odorDT=0.5;
 
-%Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=4;
-
-%Enter response area DT for each response area segment (0.5 sec is usual)
-handles.dropcProg.dt_ra=0.5;
-
-%Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
-handles.dropcProg.odor_stop=2.5;
+%Enter the inter odor interval
+handles.dropcProg.interDT=1.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
 handles.dropcProg.rfTime=0.3;
@@ -82,13 +77,12 @@ handles.comment='Test';
 %% Initialize variables that the user will not change
 
 handles.dropcData.trialPerformance=[];
-handles.dropcData.ii_lick=[];
 percent_corr_str=[];
 block=0;
 
 % dropcData
-%Fellows random numbers are started randomly
-handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
+
+
 handles.dropcData.trialIndex=1;     %These are all trials excluding shorts
 handles.dropcData.allTrialIndex=0;  %These are all trials including short and long trials
 handles.dropcData.shortIndex=1;
@@ -105,8 +99,8 @@ handles.dropcData.shortIndex=1;
 handles.dropcProg.numTrPerBlock=20;
 handles.dropcProg.makeNoise = 0;
 handles.dropcProg.consoleOut=1;
-handles.dropcProg.splusOdor=1;
-handles.dropcProg.sminusOdor=2;
+handles.dropcProg.odorA_Odor=1;
+handles.dropcProg.odorB_Odor=2;
 handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
 
@@ -137,26 +131,25 @@ run_program = 1;
 if file_exists==2
     % Tell user to change the name
     run_program=0;
-    h = msgbox('dropcspm cannot run: File already exists; change name');
+    h = msgbox('dropcdnms cannot run: File already exists; change name');
 end
 
-%Get the random Fellows numbers for choosing S+/S- for trials
-[handles.dropcProg.randomFellows handles.dropcProg.randomOpto]=dropcGetSlotnickOdorList();
+
 
 
 %Setup reinforcements depending on whether the user chose go-no go vs. go-go
 if handles.dropcProg.go_nogo==1
     %go-no go
-    handles.dropcProg.fracReinforcement(1)=1.0; %Reinforcement for S+
-    handles.dropcProg.fracReinforcement(2)=0; %Reinforcement for S-
+    handles.dropcProg.fracReinforcement(1)=1.0; %Reinforcement for odorA
+    handles.dropcProg.fracReinforcement(2)=0; %Reinforcement for odorB
     handles.dropcProg.doBuzz=0;
-    reinforceSminus=0; %If this is zero reinforce only for hit, CR
+    reinforceodorB_=0; %If this is zero reinforce only for hit, CR
 else
     %go-go
-    reinforceSminus=1;   %If this is one then reinforce regradless of the odor
+    reinforceodorB_=1;   %If this is one then reinforce regradless of the odor
     dropcProg.doBuzz=1;
-    dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
-    dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
+    dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for odorA
+    dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of odorB
 end
 
 % dropcProg.fracReinforcement(3)=0.5;
@@ -167,7 +160,7 @@ end
 %     if (afterCriterion==0)
 %         handles.dropcProg.fracReinforcement(1)=0.7;
 %         handles.dropcProg.fracReinforcement(3)=0.7;
-%         if (reinforceSminus==1)
+%         if (reinforceodorB_==1)
 %             handles.dropcProg.fracReinforcement(2)=0.7;
 %         end
 %     end
@@ -208,23 +201,34 @@ if run_program==1
         %Do one trial
 
         fprintf('\n')
-        %Decide whether this is S+ or S-
-        if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
-            %S+ odor
-            handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
-            handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
+        
+        %Decide which is the first odor
+        rand_nos=rand(1,2);
+        if (rand_nos(1)<0.5)
+            %odorA odor
+            handles.dropcProg.odor1Valve=handles.dropcProg.odorA_OdorValve;
+            handles.dropcProg.typeOfOdor1=handles.dropcProg.odorA_Odor;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) ' odor 1: odorA'])
         else
-            %S- odor
-            handles.dropcProg.odorValve=handles.dropcProg.sminusOdorValve;
-            handles.dropcProg.typeOfOdor=handles.dropcProg.sminusOdor;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S-'])
+            %odorB odor
+            handles.dropcProg.odor1Valve=handles.dropcProg.odorB_OdorValve;
+            handles.dropcProg.typeOfOdor1=handles.dropcProg.odorB_Odor;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) 'odor 1: odorB'])
         end
 
-        handles.dropcData.fellowsNo=handles.dropcData.fellowsNo+1;
-        if handles.dropcData.fellowsNo==201
-            handles.dropcData.fellowsNo=1;
+        %Decide which is the second odor
+         if (rand_nos(2)<0.5)
+            %odorA odor
+            handles.dropcProg.odor2Valve=handles.dropcProg.odorA_OdorValve;
+            handles.dropcProg.typeOfOdor2=handles.dropcProg.odorA_Odor;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) ' odor 2: odorA'])
+        else
+            %odorB odor
+            handles.dropcProg.odor2Valve=handles.dropcProg.odorB_OdorValve;
+            handles.dropcProg.typeOfOdor2=handles.dropcProg.odorB_Odor;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) 'odor 2: odorB'])
         end
+
 
 
         %Now run the trial
@@ -238,8 +242,8 @@ if run_program==1
             %Wait till the mouse pokes into the sampling chamber
             while (dropcNosePokeNow(handles)==0)
             end
-            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
-            if (dropcFinalValveOK(handles)==1)
+
+            if (dropcFinalValveOKdnms(handles)==1)
                 %This mouse stayed on during the final valve; do the
                 %single trial!
 
@@ -249,7 +253,7 @@ if run_program==1
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
                 handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
-                handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
+
                 if (trialResult~=2)
                     %This is a go
                     
@@ -364,7 +368,7 @@ if run_program==1
 
         %Output record of trial performance
 
-        if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor
+        if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.odorA_Odor
             if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
             else
@@ -386,7 +390,7 @@ if run_program==1
 
         if handles.dropcData.trialIndex-1>=20
             for trialNo=1:handles.dropcData.trialIndex-1
-                if handles.dropcData.odorType(trialNo)==handles.dropcProg.splusOdor
+                if handles.dropcData.odorType(trialNo)==handles.dropcProg.odorA_Odor
                     if handles.dropcData.trialScore(trialNo)==1
                         correctTrial(trialNo)=1;
                     else
@@ -409,7 +413,6 @@ if run_program==1
                     percent_corr_str=[percent_corr_str num2str(percent_correct(block)) ' '];
                 end
             end
-
 
             disp(percent_corr_str)
         end
