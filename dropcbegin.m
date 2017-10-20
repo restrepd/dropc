@@ -6,10 +6,10 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\OLF2\Desktop\Shane\auditory Training\081915-638-D1-AudBegin.mat';
+handles.dropcProg.output_file='C:\Users\Justin\Documents\Diego\begin1019mouse1.mat';
 
 %Which begin stage do you want to start in (1 or 2)?
-handles.begin.initStage=1;
+handles.begin.initStage=2;
 
 %In stage 2, the program increments the time interval linearly from 0 in block 1 to 1.2s in block6
 %Which block of stage 2 do you want the program to start in (1 to 7)?:
@@ -20,12 +20,12 @@ handles.begin.initBlock=1;
 handles.dropcProg.go_nogo=1;
 
 %BEGIN WILL USE S+: Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=int8(1); %Make sure to use int8
+handles.dropcProg.splusOdorValve=int8(64); %Make sure to use int8
 handles.dropcProg.splusName='Isoamyl acetate';
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
 %FOR BEGIN THIS DOES NOT MAKE A DIFFERENCE
-handles.dropcProg.sminusOdorValve=int8(2); %Make sure to use int8
+handles.dropcProg.sminusOdorValve=int8(128); %Make sure to use int8
 handles.dropcProg.sminusName='Mineral oil';
 
 %Enter final valve interval in sec (USE 1.2s FOR BEGIN)
@@ -43,8 +43,8 @@ handles.dropcProg.dt_ra=0.5;
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
 
-%Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.4;
+%Enter time for water delivery (sec, try 0.4 s)
+handles.dropcProg.rfTime=0.3;
 
 %Enter time per trial (sec, typical 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -57,18 +57,6 @@ handles.dropcProg.sendShorts=0;
 handles.comment='Test';
 
 
-
-
-
-%Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
-% transitionToPartial=0;
-
-%If transition to partial will take place: Start partial reinforcement immediately (0) or after criterion is reached (1)?
-% afterCriterion=1;
-
-%Open valve for background odor (1=yes, 0=no)
-% handles.dropcProg.backgroundOdor=0;
-
 %% Set the variables for testing
 %handles.dropcProg.testProg=1;
 %handles.dropcProg.skipIntervals=1;
@@ -80,6 +68,7 @@ handles.comment='Test';
 %Fellows random numbers are started randomly
 handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
 handles.dropcData.trialIndex=0;
+handles.dropcData.allTrialIndex=0;
 
 %Initialize the variables that define how the olfactometer runs
 % dropcProg
@@ -111,6 +100,7 @@ handles.dropcDraqOut.correct_rejection=uint8(12);
 handles.dropcDraqOut.false_alarm=uint8(14);
 handles.dropcDraqOut.draq_trigger=uint8(128);
 handles.dropcDraqOut.reinforcement=uint8(16);
+
 %Set the numbers for digital output to olfactometer DIO96H/50
 handles.dropcDioOut.final_valve=uint8(2);
 handles.dropcDioOut.purge_valve=uint8(4);
@@ -205,7 +195,10 @@ if run_program==1
     
     handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
     handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
-            
+    
+    
+    handles.dropcData.ii_lick=[];
+    
     if handles.begin.initStage==1
         handles.startStage1=toc;
         handles=dropcStageOne(handles);

@@ -3,10 +3,8 @@ function handles = dropcStageOne(handles)
 
 
 for noReinf=1:20
-    noReinf
 
-     while (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
-             
+     while (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)     
      end
 
     sumLickStatus=handles.dropcProg.sumNoLick;
@@ -20,7 +18,7 @@ for noReinf=1:20
     handles.dropcData.trialTime(handles.dropcData.trialIndex)=toc;
     dropcReinforceNow(handles);
 
-
+    fprintf(1, '\nStage 1 Trial No: %d, time: ', noReinf, toc);
 
 
     iti = (handles.dropcProg.timePerTrial+4)*rand(1);
@@ -32,20 +30,5 @@ for noReinf=1:20
     %end
 
     save(handles.dropcProg.output_file,'handles');
-
-%     %Now plot the data
-%     figure(1)
-% 
-%     %ITI
-%     if handles.dropcData.trialIndex>2
-%         ITI=handles.dropcData.trialTime(2:end)-handles.dropcData.trialTime(1:end-1);
-%         trialNoITI=(1:length(ITI));
-%         plot(trialNoITI,ITI,'ob')
-%         xlim([0 22])
-%         ylabel('ITI (sec)')
-%         xlabel('Trial No')
-%         title('Stage 1: Inter trial intervals')
-% 
-%     end
 
 end
