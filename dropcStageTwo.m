@@ -8,7 +8,7 @@ while handles.dropcData.trialIndex<160
     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
     handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
     trialNo=handles.dropcData.trialIndex;
-    fprintf(1, '\nTrial No: %d, ', trialNo);
+    fprintf(1, 'Trial No: %d, ', trialNo);
     %Now run the trial
     resultOfTrial=-2;
     while (resultOfTrial == -2)
