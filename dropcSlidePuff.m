@@ -1,5 +1,12 @@
 %% Close all
 %This program releases an odorant puff FV seconds after a trigger
+%Air flow is zero before odor puff. To use in isofluorane anestehetized
+%animals
+%
+%VERY important: Connect the exhaust tube from the final valve to
+%the nose cone for isofluorane. Do not use the tube that is normally
+%connected from the FV to the odor port in the olfactometer!!!
+
 clear all
 close all
 
@@ -60,7 +67,10 @@ handles.dropcProg.odorName{8}='2-heptanone';
 handles.dropcProg.fvtime=1.5;
 
 %Enter odor on interval in sec
-handles.dropcProg.odor_time=2;
+handles.dropcProg.odor_time=1;
+
+%Enter purge time
+handles.dropcProg.purge_time=5;
 
 %Enter comment
 handles.comment='Isoamyl acetate vs MO';
@@ -148,14 +158,14 @@ if run_program==1
     %Initialize the DIO96H/50 before the mouse comes in
     handles=dropcInitializePortsNow(handles);
     
-     fprintf(1, '\nWaiting for the trigger\n ');
-         
-     while getvalue(handles.dio.Line(34))==1
-     end
-     
-     
-     tic
-     
+    fprintf(1, '\nWaiting for the trigger\n ');
+    
+    while getvalue(handles.dio.Line(34))==1
+    end
+    
+    
+    tic
+    
     if change_odor_in_each_trial==0
         %All odors in order
         
@@ -165,60 +175,12 @@ if run_program==1
             handles.dropcProg.odorValve=handles.dropcProg.odorValves(odorNo);
             for trialNo=1:handles.dropcProg.trialsPerOdor
                 
-        
+                
                 fprintf(1, 'trial No: %d, odor No: %d, time: %d\n ',odorNo,trialNo,toc);
                 
-                
-                dropcTurnOdorValveOnNowWithFinalV(handles,odorNo);
-                
-                
-                
-                %if handles.dropcProg.skipIntervals==0
-                start_toc=toc;
-                while (toc-start_toc<handles.dropcProg.odor_time)
-                end
-                %end
-                
-                %                 %Turn off the laser light signal
-                %                 handles.dropcDigOut.draqPortStatus=uint8(0);
-                %                 dropcUpdateDraqPort(handles);
-                
-                
-                
-                dropcTurnValvesOffNow(handles);
-                
-                
-                %Turn on final valve and noise valve
-                dataValue = handles.dropcDioOut.final_valve;
-                if handles.dropcProg.makeNoise==1
-                    dataValue = dataValue+handles.dropcDioOut.noise;
-                end
-                dataValue=bitcmp(dataValue);
-                putvalue(handles.dio.Line(17:24),dataValue);
-                
-                
-                %Turn off the laser light signal
-                handles.dropcDigOut.draqPortStatus=uint8(0);
-                dropcUpdateDraqPort(handles);
-                
-                start_toc=toc;
-                while (toc-start_toc<0.4)
-                end
-                
-                %Notify draq of odor number
-                handles.dropcDigOut.draqPortStatus=uint8(2^odorNo);
-                dropcUpdateDraqPort(handles);
-                
-                start_toc=toc;
-                while (toc-start_toc<0.3)
-                end
-                
-                %This is there to turn on the draq acquisition
-                dropcStartDraq(handles)
+                handles = dropcPuff(handles,odorNo,trialNo);
                 
                 save(handles.dropcProg.output_file,'handles');
-                
-                fprintf(1, 'Odor No: %d, trial No: %d\n ', odorNo,trialNo);
                 
                 %Wait between trials
                 %if handles.dropcProg.skipIntervals==0
@@ -239,11 +201,12 @@ if run_program==1
                     fprintf(1, 'Phantom odor, trial No: %d\n ', trialNo);
                     
                     %if handles.dropcProg.skipIntervals==0
+                    handles.dropcReport.purgeOn(odorNo,trialNo)=toc;
                     start_toc=toc;
                     while (toc-start_toc<handles.dropcProg.odor_time)
                     end
                     %end
-
+                    
                     
                     %Turn off the laser light signal
                     handles.dropcDigOut.draqPortStatus=uint8(0);
@@ -289,50 +252,9 @@ if run_program==1
                 
                 fprintf(1, 'trial No: %d, odor No: %d, time: %d\n ',odorNo,trialNo,toc);
                 
-                dropcTurnOdorValveOnNowWithFinalV(handles,odorNo);
+                handles = dropcPuff(handles,odorNo,trialNo);
                 
                 
-                
-                %if handles.dropcProg.skipIntervals==0
-                start_toc=toc;
-                while (toc-start_toc<handles.dropcProg.odor_time)
-                end
-                %end
-                
-                dropcTurnValvesOffNow(handles);
-                
-                
-                %Turn on final valve and noise valve
-                dataValue = handles.dropcDioOut.final_valve;
-                if handles.dropcProg.makeNoise==1
-                    dataValue = dataValue+handles.dropcDioOut.noise;
-                end
-                dataValue=bitcmp(dataValue);
-                putvalue(handles.dio.Line(17:24),dataValue);
-                
-                
-                %Turn off the laser light signal
-                handles.dropcDigOut.draqPortStatus=uint8(0);
-                dropcUpdateDraqPort(handles);
-                
-                
-                %
-                
-                
-                start_toc=toc;
-                while (toc-start_toc<0.4)
-                end
-                
-                %Notify draq of odor number
-                handles.dropcDigOut.draqPortStatus=uint8(2^odorNo);
-                dropcUpdateDraqPort(handles);
-                
-                start_toc=toc;
-                while (toc-start_toc<0.3)
-                end
-                
-                %This is there to turn on the draq acquisition
-                dropcStartDraq(handles)
                 
                 
                 save(handles.dropcProg.output_file,'handles');
@@ -355,13 +277,14 @@ if run_program==1
                     dropcUpdateDraqPort(handles);
                     
                     fprintf(1, 'Phantom odor, trial No: %d\n ', trialNo);
-                     
+                    
                     %if handles.dropcProg.skipIntervals==0
+                    handles.dropcReport.purgeOn(odorNo,trialNo)=toc;
                     start_toc=toc;
                     while (toc-start_toc<handles.dropcProg.odor_time)
                     end
                     %end
-
+                    
                     
                     %Turn off the laser light signal
                     handles.dropcDigOut.draqPortStatus=uint8(0);
@@ -378,7 +301,7 @@ if run_program==1
                     start_toc=toc;
                     while (toc-start_toc<0.3)
                     end
-
+                    
                     %This is there to turn on the draq acquisition
                     dropcStartDraq(handles)
                     
