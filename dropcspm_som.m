@@ -18,20 +18,20 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Restrepo\Desktop\Samantha\test5';
-%handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
+handles.dropcProg.output_file='C:\Users\Huntsman Lab\Desktop\Data\SamR\dropc_spm_SOM';
+%handles.dropcProg.output_file='C:/Users/Huntsman Lab/Desktop/Data/SamR/dropc_spm_SOM/contDay1spm';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(4); %Make sure to use int8
-handles.dropcProg.splusName='Mineral oil';
+handles.dropcProg.splusOdorValve=uint8(1); %Make sure to use int8
+handles.dropcProg.splusName='puff';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
 handles.dropcProg.sminusOdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.sminusName='Isoamyl acetate';
+handles.dropcProg.sminusName='no puff';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1.5;
@@ -49,7 +49,7 @@ handles.dropcProg.dt_ra=0.5;
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.1;
 
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -62,8 +62,13 @@ handles.dropcProg.sendShorts=0;
 %Please note that the duration of light is set by Master 8
 handles.dropcProg.whenOptoOn=0;
 
+%If you want the computer to punish the mouse for a false alarm by not
+%starting the next trial for a ceratin interval enter the interval in
+%seconds here. 
+handles.dropcProg.dt_punish=0;
+
 %Enter comment
-handles.comment='Test';
+handles.comment='Day1';
 
 %Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
 % transitionToPartial=0;
@@ -80,6 +85,7 @@ handles.comment='Test';
 
 %% Initialize variables that the user will not change
 
+handles.dropcData.ii_lick=[];
 handles.dropcData.trialPerformance=[];
 percent_corr_str=[];
 block=0;
@@ -123,7 +129,7 @@ handles.dropcDraqOut.draq_trigger=uint8(128);
 handles.dropcDraqOut.reinforcement=uint8(16);
 
 %Set the numbers for digital output to olfactometer DIO96H/50
-handles.dropcDioOut.final_valve=uint8(2);
+handles.dropcDioOut.final_valve=uint8(4);
 handles.dropcDioOut.noise=uint8(8);
 handles.dropcDioOut.background_valve=uint8(3);
 handles.dropcDioOut.water_valve=uint8(1);
@@ -235,7 +241,7 @@ if run_program==1
             %Wait till the mouse pokes into the sampling chamber
             while (dropcNosePokeNow(handles)==0)
             end
-
+            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
             if (dropcStimulateWhisker(handles)==1)
                 %This mouse stayed on during the final valve; do the
                 %single trial!
@@ -246,7 +252,7 @@ if run_program==1
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
                 handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
-
+                handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
                 if (trialResult~=2)
                     %This is a go
                     

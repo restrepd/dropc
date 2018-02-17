@@ -14,18 +14,18 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Justin\Documents\Diego\test_nsamplerm.mat';
+handles.dropcProg.output_file='C:\Users\Justin\Documents\Diego\1031Halloween16.mat';
 
 %Change odors in each trials?
 change_odor_in_each_trial=1;
 
 
 %Number of odors
-handles.dropcProg.noOdors=2
+handles.dropcProg.noOdors=1
 handles.dropcProg.phantomOdor=0;
 
 %Number of trials per odor
-handles.dropcProg.trialsPerOdor=5;
+handles.dropcProg.trialsPerOdor=10;
 
 
 %Time between trials
@@ -38,8 +38,8 @@ handles.dropcProg.dt_between_trials=15;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
 
-handles.dropcProg.odorValves(1)=uint8(64);
-handles.dropcProg.odorName{1}='Isoamyl acetate';
+handles.dropcProg.odorValves(1)=uint8(128);
+handles.dropcProg.odorName{1}='MO';
 
 handles.dropcProg.odorValves(2)=uint8(128);
 handles.dropcProg.odorName{2}='MO';
@@ -67,13 +67,13 @@ handles.dropcProg.odorName{8}='2-heptanone';
 handles.dropcProg.fvtime=1.5;
 
 %Enter odor on interval in sec
-handles.dropcProg.odor_time=1;
+handles.dropcProg.odor_time=5;
 
 %Enter purge time
-handles.dropcProg.purge_time=5;
+handles.dropcProg.purge_time=10;
 
 %Enter comment
-handles.comment='Isoamyl acetate vs MO';
+handles.comment='Isoamyl acetate';
 
 %Open valve for background odor (1=yes, 0=no)
 % handles.dropcProg.backgroundOdor=0;
@@ -176,7 +176,7 @@ if run_program==1
             for trialNo=1:handles.dropcProg.trialsPerOdor
                 
                 
-                fprintf(1, 'trial No: %d, odor No: %d, time: %d\n ',odorNo,trialNo,toc);
+                fprintf(1, 'trial No: %d, odor No: %d, time: %d\n ',trialNo,odorNo,toc);
                 
                 handles = dropcPuff(handles,odorNo,trialNo);
                 
@@ -249,16 +249,12 @@ if run_program==1
                 
                 handles.dropcProg.odorValve=handles.dropcProg.odorValves(odorNo);
                 
-                
-                fprintf(1, 'trial No: %d, odor No: %d, time: %d\n ',odorNo,trialNo,toc);
+                fprintf(1, 'trial No: %d, odor No: %d, time: %d\n ',trialNo,odorNo,toc);
                 
                 handles = dropcPuff(handles,odorNo,trialNo);
                 
-                
-                
-                
                 save(handles.dropcProg.output_file,'handles');
-                fprintf(1, 'Odor No: %d, trial No: %d\n ', odorNo,trialNo);
+                
                 
                 %Wait between trials
                 %if handles.dropcProg.skipIntervals==0

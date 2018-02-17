@@ -1,4 +1,4 @@
-function finalValveOK = dropcStimulateWhiskerBegin(handles)
+function finalValveOK = dropcFinalValveOKBegin_hf(handles)
 %Opens final valve and odor on and finds out whtehr the mouse stays in the
 %odor sampling area
 
@@ -51,12 +51,18 @@ else
 end
 dropcUpdateDraqPort(handles);
 
-% %Turn on final valve towards the exhaust and noise valve
-% dataValue = handles.dropcDioOut.final_valve;
-% if handles.dropcProg.makeNoise==1
-%     dataValue = dataValue+handles.dropcDioOut.noise;
-% end
-% dataValue=bitcmp(dataValue);
+%Notify FV
+handles.dropcData.eventIndex=handles.dropcData.eventIndex+1;
+handles.dropcData.eventTime(handles.dropcData.eventIndex)=toc;
+handles.dropcData.event(handles.dropcData.eventIndex)=1;
+
+
+%Divert final valve towards the exhaust and the purge valve towars the port
+dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
+if handles.dropcProg.makeNoise==1
+    dataValue = dataValue+handles.dropcDioOut.noise;
+end
+dataValue=bitcmp(dataValue);
 
 putvalue(handles.dio.Line(17:24),dataValue);
 
@@ -128,10 +134,14 @@ end
 dropcUpdateDraqPort(handles);
 
 
-%Turn final valve on so that the animal feels a 2.5 sec puff
-dataValue = handles.dropcDioOut.final_valve;
-dataValue=bitcmp(dataValue);
+%Turn FinalValve towards the odor port: turn on odor...)
+dataValue=bitcmp(uint8(0));
 putvalue(handles.dio.Line(17:24),dataValue);
+
+%Notify odor on
+handles.dropcData.eventIndex=handles.dropcData.eventIndex+1;
+handles.dropcData.eventTime(handles.dropcData.eventIndex)=toc;
+handles.dropcData.event(handles.dropcData.eventIndex)=2;
 
 %Turn opto TTL off
 dataValue=uint8(15);
