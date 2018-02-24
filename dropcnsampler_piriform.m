@@ -6,8 +6,8 @@ close all
 
 %First file name for output
 %IMPORTANT: Do not enter .mat
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\thygrinlesnAPC02152018no1';
-if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\cerebellum3p';
+if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'nsampler.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
 
@@ -75,7 +75,7 @@ handles.comment='Test';
 %handles.dropcProg.skipIntervals=1;
 
 %% Initialize variables that the user will not change
-
+handles.dropcProg.which_program=mfilename;
 
 % dropcData
 %Fellows random numbers are started randomly

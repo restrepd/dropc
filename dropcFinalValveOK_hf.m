@@ -1,34 +1,50 @@
-function dropcFinalValveOKBegin_hf(handles)
-%Opens final valve and odor on and finds out whtehr the mouse stays in the
-%odor sampling area
+function dropcFinalValveOK_hf(handles)
+%Diverts final valve towards the exhaust, turns valve odor on, finds out whther the mouse stays in the
+%odor sampling area and turns the final valve back towards the port
 
 start_toc=toc;
 
 noSamples=0;
 noSamplesMouseOn=0;
 
-
-
-%During begin fvtime increases monotonically as a function of trialIndex
-group=floor(handles.dropcData.trialIndex/20)+1;
-if (group<=6)
-    fvtime=(group-1)*handles.dropcProg.fvtime/5;
+if (handles.dropcProg.typeOfOdor==4)
+    
+    %During begin fvtime increases monotonically as a function of trialIndex
+    group=floor(handles.dropcData.trialIndex/20)+1;
+    if (group<=6)
+        fvtime=(group-2)*handles.dropcProg.fvtime/5;
+    else
+        fvtime=handles.dropcProg.fvtime;
+    end
+    
+    
 else
-    fvtime=handles.dropcProg.fvtime;
+    
+    %Otherwise, fvtime falls randomly between 1 and 1.5
+    fvtime = 0.666666*handles.dropcProg.fvtime +0.333333*handles.dropcProg.fvtime*rand(1);
+    
 end
+
 
 
 %Notify draq, turn final valve and odor on, etc...
 
 
-%Turn on (or not) opto stimulus
+%Turn on (or not) opto stimulus during FV
 opto_on=0;
-if handles.dropcProg.whenOptoOn==1
-    if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
-        dataValue=uint8(0);
-        putvalue(handles.dio.Line(9:12),dataValue);
-        opto_on=1;
-    end
+handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=0;
+if (handles.dropcProg.whenOptoOn==1)
+    % if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
+    %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
+    %if you want to randomly send TTL opto uncomment this line
+    %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
+    dataValue=uint8(0);
+    putvalue(handles.dio.Line(9:12),dataValue);
+    opto_on=1;
+    handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+    %         end
+    %end
+    
 end
 
 %Notify draq
@@ -46,12 +62,6 @@ else
     end
 end
 dropcUpdateDraqPort(handles);
-
-%Notify FV
-handles.dropcData.eventIndex=handles.dropcData.eventIndex+1;
-handles.dropcData.eventTime(handles.dropcData.eventIndex)=toc;
-handles.dropcData.event(handles.dropcData.eventIndex)=1;
-
 
 %Divert final valve towards the exhaust and the purge valve towars the port
 dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
@@ -71,26 +81,26 @@ putvalue(handles.dio.Line(1:8),dataValue);
 
 
 
-
-%if handles.dropcProg.skipIntervals==0
-while (toc-start_toc<fvtime)
-    noSamples=noSamples+1;
-    if dropcNosePokeNow(handles)==1
-        noSamplesMouseOn=noSamplesMouseOn+1;
-    end
-end
-%end
-
-
-%Turn on (or not) opto stimulus
+%Turn on (or not) opto stimulus during odor delivery
 opto_on=0;
+
+%If this is not a short then give the light
+
+
 if handles.dropcProg.whenOptoOn==2
-    if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
-        dataValue=bitcmp(uint8(8));
+    if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
+        %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
+        %if you want to randomly send TTL opto uncomment this line
+        %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
+        dataValue=uint8(0);
         putvalue(handles.dio.Line(9:12),dataValue);
         opto_on=1;
+        handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+        %         end
     end
 end
+
+
 
 %Notify draq of odor onset
 
@@ -110,24 +120,19 @@ else
 end
 
 
-
-
-
 dropcUpdateDraqPort(handles);
 
 
-%Turn FinalValve towards the odor port: turn on odor...)
+%Turn FinalValve towards the odor port: turn purge to exhaust, turn on odor...)
 dataValue=bitcmp(uint8(0));
 putvalue(handles.dio.Line(17:24),dataValue);
 
-%Notify odor on
-handles.dropcData.eventIndex=handles.dropcData.eventIndex+1;
-handles.dropcData.eventTime(handles.dropcData.eventIndex)=toc;
-handles.dropcData.event(handles.dropcData.eventIndex)=2;
-
 %Turn opto TTL off
-dataValue=uint8(15);
-putvalue(handles.dio.Line(9:12),dataValue);
+if (handles.dropcProg.whenOptoOn==1)
+    dataValue=uint8(15);
+    putvalue(handles.dio.Line(9:12),dataValue);
+end
+
 
 
 end

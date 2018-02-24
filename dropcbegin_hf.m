@@ -65,8 +65,8 @@ handles.comment='Test';
 %handles.dropcProg.skipIntervals=1;
 
 %% Initialize variables that the user will not change
-
-
+handles.dropcProg.which_program=mfilename;
+ 
 % dropcData
 %Fellows random numbers are started randomly
 handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
@@ -166,7 +166,7 @@ fprintf(1, '\nStart of session...\n ');
 %The filename will include the time in format 30:
 %ISO 8601: 'yyymmddTHHMMSS'
 formatOut=30;
-handles.dropcProg.output_file=[handles.dropcProg.output_file_prefix datestr(datetime,formatOut) '.mat'];
+handles.dropcProg.output_file=[handles.dropcProg.output_file_prefix datestr(datetime,formatOut) 'begin.mat'];
 
 
 handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;

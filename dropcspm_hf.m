@@ -13,7 +13,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\tmmTGR05.mat';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\CerebellarmmTG05-5-3p.mat';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -23,25 +23,25 @@ end
 handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(8); %Make sure to use int8
-handles.dropcProg.splusName='EA';
+handles.dropcProg.splusOdorValve=uint8(64); %Make sure to use int8
+handles.dropcProg.splusName='ISA';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(4); %Make sure to use int8
-handles.dropcProg.sminusName='PA';
+handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
+handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
-handles.dropcProg.fvtime=1.5;
+handles.dropcProg.fvtime=1;
 
 %Enter time interval for short trial test (0.5 sec is usual)
-handles.dropcProg.shortTime=0.5;
+handles.dropcProg.shortTime=0;
 
 %Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=4;
+handles.dropcProg.noRAsegments=2;  %Note: This must be at least two segments
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
-handles.dropcProg.dt_ra=0.5;
+handles.dropcProg.dt_ra=0.4;
 
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
@@ -82,6 +82,7 @@ handles.comment='Test';
 %handles.dropcProg.skipIntervals=0;
 
 %% Initialize variables that the user will not change
+handles.dropcProg.which_program=mfilename;
 
 handles.dropcData.trialPerformance=[];
 handles.dropcData.ii_lick=[];
@@ -92,12 +93,9 @@ block=0;
 %Fellows random numbers are started randomly
 handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
 handles.dropcData.trialIndex=1;     %These are all trials excluding shorts
-handles.dropcData.allTrialIndex=0;  %These are all trials including short and long trials
+handles.dropcData.epochIndex=0;
 handles.dropcData.shortIndex=1;
 
-
-%Note: handles.dropcData.allTrialResult 0=not licked, 1=licked, 2=short
-%odor, 3=short FV
 
 
 %Initialize the variables that define how the olfactometer runs
@@ -157,21 +155,6 @@ else
     dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
-% dropcProg.fracReinforcement(3)=0.5;
-% dropcProg.fracReinforcement(4)=1.0;
-
-% %Setup transition to partial reinforcement
-% if (transitionToPartial==1)
-%     if (afterCriterion==0)
-%         handles.dropcProg.fracReinforcement(1)=0.7;
-%         handles.dropcProg.fracReinforcement(3)=0.7;
-%         if (reinforceSminus==1)
-%             handles.dropcProg.fracReinforcement(2)=0.7;
-%         end
-%     end
-% end
-
-
 
 %% Now run the olfactometer
 
@@ -179,6 +162,7 @@ end
 %Initialize the DIO96H/50 before the mouse comes in
 handles=dropcInitializePortsNow(handles);
 
+fprintf(1, '\nWaiting for trigger...\n ');
 while getvalue(handles.dio.Line(34))==1
 end
 tic
@@ -187,7 +171,7 @@ fprintf(1, '\nStart of session...\n ');
 %The filename will include the time in format 30:
 %ISO 8601: 'yyymmddTHHMMSS'
 formatOut=30;
-handles.dropcProg.output_file=[handles.dropcProg.output_file_prefix datestr(datetime,formatOut) '.mat'];
+handles.dropcProg.output_file=[handles.dropcProg.output_file_prefix datestr(datetime,formatOut) 'spm.mat'];
 
 stopTrials=0;
 
@@ -215,153 +199,102 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     
     %Now run the trial
-    
-    
-    
-    resultOfTrial=-2;
-    while (resultOfTrial == -2)
-        %While mouse is doing short samples
-        
-        %Wait till the mouse pokes into the sampling chamber
-        while (dropcNosePokeNow(handles)==0)
-        end
-        handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
-        if (dropcFinalValveOK(handles)==1)
-            %This mouse stayed on during the final valve; do the
-            %single trial!
-            
-            
-            trialResult=dropcDoesMouseRespondNow(handles);
-            handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
-            handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
-            handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
-            handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
-            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
-            if (trialResult~=2)
-                %This is a go
-                
-                %Turn opto TTL off
-                if (handles.dropcProg.whenOptoOn==2)
-                    dataValue=uint8(15);
-                    putvalue(handles.dio.Line(9:12),dataValue);
-                end
-                
-                dropcTurnValvesOffNow(handles);
-                handles.dropcData.trialTime(handles.dropcData.trialIndex)=toc;
-                handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.typeOfOdor;
-                handles.dropcData.odorValve(handles.dropcData.trialIndex)=handles.dropcProg.odorValve;
-                handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
-                
-                %result_of_trial=trialResult
-                disp(['Result of trial= ' num2str(trialResult)])
-                dropcReinforceAppropriately(handles);
-                
-                %Turn opto TTL off
-                if (handles.dropcProg.whenOptoOn==3)
-                    dataValue=uint8(15);
-                    putvalue(handles.dio.Line(9:12),dataValue);
-                end
-                
-                handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
-                dropcTurnValvesOffNow(handles);
-                %Mouse must leave
-                
-                while dropcNosePokeNow(handles)==1
-                end
-                
-                resultOfTrial=1;
-                
-            else
-                
-                %This is a short trial that ended after odor onset
-                
-                %Notify draq
-                
-                
-                %                         handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.short_after+handles.dropcDraqOut.odor_onset;
-                %                         dropcUpdateDraqPort(handles);
-                dropcTurnValvesOffNow(handles);
-                %This turns all off
-                handles.dropcDigOut.draqPortStatus=uint8(0);
-                dropcUpdateDraqPort(handles);
-                
-                if handles.dropcProg.sendShorts==1
-                    %Send a short
-                    %                             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.short_after+handles.dropcDraqOut.draq_trigger;
-                    %                             dropcUpdateDraqPort(handles);
-                    %
-                    %                             start_toc=toc;
-                    %                             while toc-start_toc<0.2
-                    %                             end
-                    %
-                    %Extremely important. If you do not do this you do not transfer all
-                    %trials to the draq computer
-                    %Notify draq of odor number
-                    
-                    handles.dropcData.shortTime(handles.dropcData.shortIndex)=toc;
-                    handles.dropcData.shortType(handles.dropcData.shortIndex)=1;
-                    handles.dropcData.shortIndex(handles.dropcData.shortIndex)=handles.dropcData.shortIndex(handles.dropcData.shortIndex)+1;
-                    
-                    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.short_before;
-                    dropcUpdateDraqPort(handles);
-                    start_toc=toc;
-                    while (toc-start_toc<0.3)
-                    end
-                    
-                    dropcStartDraq(handles)
-                    
-                    pause(handles.dropcProg.timePerTrial)
-                end
-                
-                disp('Short after odor onset')
-                %                         start_toc=toc;
-                %                         while toc-start_toc<handles.dropcProg.timePerTrial
-                %                         end
-                
-                
-                
-                
-                
-                resultOfTrial= -2;
-                
-            end
-            
-        else
-            
-            %This is a short trial because mouse was not poking at end of FinalValve
-            %It ended before odor onset
-            
-            %Notify draq
-            dropcTurnValvesOffNow(handles);
-            %This turns all off
-            handles.dropcDigOut.draqPortStatus=uint8(0);
-            dropcUpdateDraqPort(handles);
-            
-            pause(handles.dropcProg.timePerTrial)
-            
-            resultOfTrial= -2;
-            handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
-            handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=3;
-            handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
-            handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
-            
-            disp('Short before odor onset')
-        end
+
+    %Wait till the mouse licks
+    while (dropcNosePokeNow(handles)==0)
     end
     
-    %Output record of trial performance
+    %FV on
+    handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+    handles.dropcData.epochEvent(handles.dropcData.epochIndex)=1; %1 is FV on
+    handles.dropcData.epochTime(handles.dropcData.epochIndex)=toc;
+    handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+    handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
+    dropcFinalValveOK_hf(handles);
+    
+    %Odor on
+    handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+    handles.dropcData.epochEvent(handles.dropcData.epochIndex)=2; %2 is odor on
+    handles.dropcData.epochTime(handles.dropcData.epochIndex)=toc;
+    odorOnTime=handles.dropcData.epochTime(handles.dropcData.epochIndex);
+    handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+    handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
+    
+
+    [handles,trialResult]=dropcDoesMouseRespondNow_hfspm(handles);
+    
+    
+    %Turn opto TTL off
+    if (handles.dropcProg.whenOptoOn==2)
+        dataValue=uint8(15);
+        putvalue(handles.dio.Line(9:12),dataValue);
+    end
+    
+    dropcTurnValvesOffNow(handles);
+    
+    %Odor off
+    handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+    handles.dropcData.epochEvent(handles.dropcData.epochIndex)=3;  %3 is odor off
+    handles.dropcData.epochTime(handles.dropcData.epochIndex)=toc;
+    handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+    handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
+    
+    %result_of_trial=trialResult
+    disp(['Result of trial= ' num2str(trialResult)])
+    handles=dropcReinforceAppropriately_hf(handles);
+    
+    %Turn opto TTL off
+    if (handles.dropcProg.whenOptoOn==3)
+        dataValue=uint8(15);
+        putvalue(handles.dio.Line(9:12),dataValue);
+    end
+    
+    handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
+    dropcTurnValvesOffNow(handles);
+    %Mouse must leave
+    
+    while dropcNosePokeNow(handles)==1
+    end
+    
+    
+    %Output record of trial performance
     if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor
         if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'Hit '];
+            
+            handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+            handles.dropcData.epochEvent(handles.dropcData.epochIndex)=6;
+            handles.dropcData.epochTime(handles.dropcData.epochIndex)=odorOnTime;
+            handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+            handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
+            
         else
-            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
+            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'Miss '];
+            
+            handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+            handles.dropcData.epochEvent(handles.dropcData.epochIndex)=7;
+            handles.dropcData.epochTime(handles.dropcData.epochIndex)=odorOnTime;
+            handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+            handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
         end
     else
         if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
+            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'FA '];
+            
+            handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+            handles.dropcData.epochEvent(handles.dropcData.epochIndex)=8;
+            handles.dropcData.epochTime(handles.dropcData.epochIndex)=odorOnTime;
+            handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+            handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
         else
-            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+            handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'CR '];
+            
+            handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
+            handles.dropcData.epochEvent(handles.dropcData.epochIndex)=9;
+            handles.dropcData.epochTime(handles.dropcData.epochIndex)=odorOnTime;
+            handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+            handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
         end
     end
     
