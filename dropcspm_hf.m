@@ -32,13 +32,13 @@ handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
 handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
-handles.dropcProg.fvtime=1;
+handles.dropcProg.fvtime=0.5;
 
 %Enter time interval for short trial test (0.5 sec is usual)
 handles.dropcProg.shortTime=0;
 
 %Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=2;  %Note: This must be at least two segments
+handles.dropcProg.noRAsegments=1;  %Note: This must be at least two segments
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
 handles.dropcProg.dt_ra=0.4;
@@ -163,8 +163,8 @@ end
 handles=dropcInitializePortsNow(handles);
 
 fprintf(1, '\nWaiting for trigger...\n ');
-while getvalue(handles.dio.Line(34))==1
-end
+% while getvalue(handles.dio.Line(34))==1
+% end
 tic
 fprintf(1, '\nStart of session...\n ');
 
@@ -184,11 +184,13 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
         %S+ odor
         handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
         handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
+        handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor;
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
     else
         %S- odor
         handles.dropcProg.odorValve=handles.dropcProg.sminusOdorValve;
         handles.dropcProg.typeOfOdor=handles.dropcProg.sminusOdor;
+        handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.sminusOdor;
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S-'])
     end
     
@@ -242,6 +244,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     %result_of_trial=trialResult
     disp(['Result of trial= ' num2str(trialResult)])
+    handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
     handles=dropcReinforceAppropriately_hf(handles);
     
     %Turn opto TTL off
