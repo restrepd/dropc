@@ -163,8 +163,8 @@ end
 handles=dropcInitializePortsNow(handles);
 
 fprintf(1, '\nWaiting for trigger...\n ');
-% while getvalue(handles.dio.Line(34))==1
-% end
+while getvalue(handles.dio.Line(34))==1
+end
 tic
 fprintf(1, '\nStart of session...\n ');
 
