@@ -32,13 +32,21 @@ handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
 handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
+<<<<<<< HEAD
 handles.dropcProg.fvtime=0.5;
+=======
+handles.dropcProg.fvtime=1;
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
 
 %Enter time interval for short trial test (0.5 sec is usual)
 handles.dropcProg.shortTime=0;
 
 %Enter number of response area segments (usually 4, must be less than 6)
+<<<<<<< HEAD
 handles.dropcProg.noRAsegments=1;  %Note: This must be at least two segments
+=======
+handles.dropcProg.noRAsegments=2;  %Note: This must be at least two segments
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
 handles.dropcProg.dt_ra=0.4;
@@ -184,13 +192,19 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
         %S+ odor
         handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
         handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
+<<<<<<< HEAD
         handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor;
+=======
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
     else
         %S- odor
         handles.dropcProg.odorValve=handles.dropcProg.sminusOdorValve;
         handles.dropcProg.typeOfOdor=handles.dropcProg.sminusOdor;
+<<<<<<< HEAD
         handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.sminusOdor;
+=======
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S-'])
     end
     
@@ -244,7 +258,10 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     %result_of_trial=trialResult
     disp(['Result of trial= ' num2str(trialResult)])
+<<<<<<< HEAD
     handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
+=======
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
     handles=dropcReinforceAppropriately_hf(handles);
     
     %Turn opto TTL off

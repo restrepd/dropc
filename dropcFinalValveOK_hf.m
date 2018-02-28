@@ -32,7 +32,11 @@ end
 
 %Turn on (or not) opto stimulus during FV
 opto_on=0;
+<<<<<<< HEAD
 % handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=0;
+=======
+handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=0;
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
 if (handles.dropcProg.whenOptoOn==1)
     % if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
     %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
@@ -41,7 +45,11 @@ if (handles.dropcProg.whenOptoOn==1)
     dataValue=uint8(0);
     putvalue(handles.dio.Line(9:12),dataValue);
     opto_on=1;
+<<<<<<< HEAD
 %     handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+=======
+    handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
     %         end
     %end
     
@@ -95,7 +103,11 @@ if handles.dropcProg.whenOptoOn==2
         dataValue=uint8(0);
         putvalue(handles.dio.Line(9:12),dataValue);
         opto_on=1;
+<<<<<<< HEAD
 %         handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+=======
+        handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+>>>>>>> db888181d401cf2289c1ad70c7831093bc78040b
         %         end
     end
 end
