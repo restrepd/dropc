@@ -20,13 +20,13 @@ handles.dropcProg.output_file='C:\Users\restrepo\Desktop\amber\062917_test1b_WM'
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_a_OdorValve=uint8(8); %Make sure to use int8
+%Enter odor a  valve (1,2,4,8,16,32,64,128) and odor name
+handles.dropcProg.odor_a_OdorValve=uint8(32); %Make sure to use int8
 handles.dropcProg.odor_a_Name='iso';
 
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_b_OdorValve=uint8(4); %Make sure to use int8
+%Enter odor b valve (1,2,4,8,16,32,64,128) and odor name
+handles.dropcProg.odor_b_OdorValve=uint8(32); %Make sure to use int8
 handles.dropcProg.odor_b_Name='mo';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -51,7 +51,7 @@ handles.dropcProg.rfTime=0.3;
 handles.dropcProg.finalPurgeTime=1;
 
 %Enter delay interval
-handles.dropcProg.delayInterval=1;
+handles.dropcProg.delayInterval=2;
 
 %Enter punish interval
 handles.dropcProg.punishInterval=10;
@@ -157,6 +157,8 @@ else
     dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
+correct_per_trial=[];
+actual_trials=0;
 
 
 
@@ -297,12 +299,15 @@ if run_program==1
                 
                 %Turn off all odor valves
                 putvalue(handles.dio.Line(1:8),uint8(255));
-
+                
                 
                 %Turn off draq
                 handles.dropcDigOut.draqPortStatus=0;
                 dropcUpdateDraqPort(handles);
                 
+                %Trigger
+                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
+                dropcUpdateDraqPort(handles);
                 
                 end_toc=toc+handles.dropcProg.must_lick_dt;
                 didLick=0;
@@ -319,7 +324,7 @@ if run_program==1
                 if handles.dropcProg.odorValve1~=handles.dropcProg.odorValve2
                     if didLick==1
                         %Notify draq of reinforcement
-                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement+handles.dropcDraqOut.draq_trigger;
+                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
                         dropcUpdateDraqPort(handles);
                         dropcReinforceNow(handles);
                         was_reinforced=1;
@@ -327,12 +332,17 @@ if run_program==1
                         %Turn off draq
                         handles.dropcDigOut.draqPortStatus=0;
                         dropcUpdateDraqPort(handles);
+                        
+                        actual_trials=actual_trials+1;
+                        correct_per_trial(actual_trials)=1;
+                        disp('Different odors, mouse licked, correct response')
                     else
+                        actual_trials=actual_trials+1;
+                        correct_per_trial(actual_trials)=0;
+                        disp('Different odors, mouse did not lick, incorrect response')
                         %Punish mouse for lack of response to nonmatch
                         
-                        %Trigger
-                        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
-                        dropcUpdateDraqPort(handles);
+                        
                         start_time=toc;
                         while (toc-start_time<handles.dropcProg.rfTime)
                         end
@@ -345,22 +355,25 @@ if run_program==1
                         end
                     end
                 else
-                    %Trigger
-                    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
-                    dropcUpdateDraqPort(handles);
+                    
                     start_time=toc;
                     while (toc-start_time<handles.dropcProg.rfTime)
                     end
                     %Turn off draq
                     handles.dropcDigOut.draqPortStatus=0;
                     dropcUpdateDraqPort(handles);
+                    if didLick==1
+                        actual_trials=actual_trials+1;
+                        correct_per_trial(actual_trials)=0;
+                        disp('The same odor, mouse licked, incorrect response')
+                    else
+                        actual_trials=actual_trials+1;
+                        correct_per_trial(actual_trials)=1;
+                        disp('The same odor, mouse did not lick, correct response')
+                    end
                 end
                 
-                if was_reinforced==1
-                    disp('Reinforced')
-                else
-                    disp('Not reinforced')
-                end
+                
                 
                 start_toc=toc;
                 while toc-start_toc<handles.dropcProg.fvtime
@@ -370,7 +383,7 @@ if run_program==1
                 %Divert purge valve towards exhaust
                 putvalue(handles.dio.Line(17:24),uint8(255));
                 
-               
+                
                 
                 handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
                 
@@ -386,8 +399,13 @@ if run_program==1
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
                 handles.dropcData.allTrialOdor1(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor1;
                 handles.dropcData.allTrialOdor2(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor2;
+                handles.dropcData.correct(handles.dropcData.allTrialIndex)=correct_per_trial(actual_trials);
                 disp('End of full tiral')
                 
+                if rem(actual_trials,20)==0
+                    %This is a block
+                    fprintf(1,'\nBlock number %d, percent correct= %d\n\n',ceil(actual_trials/20),100*sum(correct_per_trial(end-19:end))/20)
+                end
             else
                 %This is a short
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
@@ -395,9 +413,9 @@ if run_program==1
                 handles.dropcData.allTrialdidLick(handles.dropcData.allTrialIndex)=0;
                 handles.dropcData.allTrialwasReinforced(handles.dropcData.allTrialIndex)=0;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
-                handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
                 handles.dropcData.allTrialOdor1(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor1;
                 handles.dropcData.allTrialOdor2(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor2;
+                handles.dropcData.correct(handles.dropcData.allTrialIndex)=-1;
                 
                 disp('Short')
                 
@@ -418,64 +436,7 @@ if run_program==1
             end
         end
         
-        %Output record of trial performance
         
-%         if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.odor_a_Odor
-%             if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
-%             else
-%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
-%             end
-%         else
-%             if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
-%             else
-%                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
-%             end
-%         end
-%         
-%         if rem(handles.dropcData.trialIndex,20)==1
-%             handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance ' '];
-%         end
-%         
-%         dropcDisplayOutString(handles.dropcData.trialPerformance)
-        
-%         if handles.dropcData.trialIndex-1>=20
-%             for trialNo=1:handles.dropcData.trialIndex-1
-%                 if handles.dropcData.odorType(trialNo)==handles.dropcProg.odor_a_Odor
-%                     if handles.dropcData.trialScore(trialNo)==1
-%                         correctTrial(trialNo)=1;
-%                     else
-%                         correctTrial(trialNo)=0;
-%                     end
-%                 else
-%                     if handles.dropcData.trialScore(trialNo)==1
-%                         correctTrial(trialNo)=0;
-%                     else
-%                         correctTrial(trialNo)=1;
-%                     end
-%                 end
-%             end
-%             
-%             max_block=floor((handles.dropcData.trialIndex-1)/20);
-%             if handles.dropcData.trialIndex>1
-%                 if rem((handles.dropcData.trialIndex-1),20)==1
-%                     block=block+1;
-%                     percent_correct(block)= 100*sum(correctTrial((block-1)*20+1:block*20))/20;
-%                     percent_corr_str=[percent_corr_str num2str(percent_correct(block)) ' '];
-%                 end
-%             end
-%             
-%             %             blockNo=1:max_block;
-%             %             plot(blockNo,percent_correct,'x-r')
-%             %             xlim([0 11])
-%             %             ylim([40 110])
-%             %             ylabel('Percent correct')
-%             %             xlabel('Block No')
-%             %             title('Percent correct')
-%             %percent_corr=percent_correct
-%             disp(percent_corr_str)
-%         end
         
         
         save(handles.dropcProg.output_file,'handles');

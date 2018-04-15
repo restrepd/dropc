@@ -1,4 +1,4 @@
-function dropcFinalValveOK_hf(handles)
+function finalValveOK = dropcFinalValveOK_hf(handles)
 %Diverts final valve towards the exhaust, turns valve odor on, finds out whther the mouse stays in the
 %odor sampling area and turns the final valve back towards the port
 
@@ -32,13 +32,19 @@ end
 
 %Turn on (or not) opto stimulus during FV
 opto_on=0;
-
+% handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=0;
 if (handles.dropcProg.whenOptoOn==1)
-
+    % if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
+    %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
+    %if you want to randomly send TTL opto uncomment this line
+    %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
     dataValue=uint8(0);
     putvalue(handles.dio.Line(9:12),dataValue);
     opto_on=1;
-
+%     handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+    %         end
+    %end
+    
 end
 
 %Notify draq
@@ -73,25 +79,35 @@ dataValue=bitcmp(uint8(dataValue));
 
 putvalue(handles.dio.Line(1:8),dataValue);
 
+%Find out whether the mouse is poking
+while (toc-start_toc<fvtime)
+    noSamples=noSamples+1;
+    if dropcNosePokeNow(handles)==1
+        noSamplesMouseOn=noSamplesMouseOn+1;
+    end
+end
 
 
 %Turn on (or not) opto stimulus during odor delivery
 opto_on=0;
 
 %If this is not a short then give the light
-
-
-if handles.dropcProg.whenOptoOn==2
-    if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
-
-        dataValue=uint8(0);
-        putvalue(handles.dio.Line(9:12),dataValue);
-        opto_on=1;
-
+if (noSamplesMouseOn/noSamples) > 0.2
+    
+    if handles.dropcProg.whenOptoOn==2
+        if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
+            %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
+            %if you want to randomly send TTL opto uncomment this line
+            %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
+            dataValue=uint8(0);
+            putvalue(handles.dio.Line(9:12),dataValue);
+            opto_on=1;
+            handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+            %         end
+        end
     end
+    
 end
-
-
 
 %Notify draq of odor onset
 
@@ -125,5 +141,15 @@ if (handles.dropcProg.whenOptoOn==1)
 end
 
 
+if (fvtime<0.3)
+    finalValveOK=1;
+else
+    
+    if (noSamplesMouseOn/noSamples) > 0.2
+        finalValveOK=1;
+    else
+        finalValveOK=0;
+    end
+end
 
 end

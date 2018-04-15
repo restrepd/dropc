@@ -13,7 +13,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\CerebellarmmTG05-5-3p.mat';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\11-CerebellarmmG06-20180315-spmmat';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -32,18 +32,16 @@ handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
 handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
-handles.dropcProg.fvtime=0.5;
-
+handles.dropcProg.fvtime=1;
 
 %Enter time interval for short trial test (0.5 sec is usual)
 handles.dropcProg.shortTime=0;
 
 %Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=1;  %Note: This must be at least two segments
-
+handles.dropcProg.noRAsegments=4;  %Note: This must be at least two segments
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
-handles.dropcProg.dt_ra=0.4;
+handles.dropcProg.dt_ra=0.5;
 
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
@@ -65,7 +63,7 @@ handles.dropcProg.whenOptoOn=1;
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here.
-handles.dropcProg.dt_punish=0;
+handles.dropcProg.dt_punish=10;
 
 %Enter comment
 handles.comment='Test';
@@ -187,7 +185,6 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
         handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
         handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
         handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor;
-
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
     else
         %S- odor
