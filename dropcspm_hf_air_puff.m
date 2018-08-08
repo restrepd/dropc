@@ -213,7 +213,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
-    dropcFinalValveOK_hf(handles);
+    dropcFinalValveOK_hf_air_puff(handles);
     
     %Odor on
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
@@ -232,6 +232,10 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
         dataValue=uint8(15);
         putvalue(handles.dio.Line(9:12),dataValue);
     end
+    
+    %Turn FinalValve towards the odor port: turn purge to exhaust, turn on odor...)
+    dataValue=bitcmp(uint8(0));
+    putvalue(handles.dio.Line(17:24),dataValue);
     
     dropcTurnValvesOffNow(handles);
     

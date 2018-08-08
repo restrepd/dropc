@@ -218,13 +218,13 @@ if run_program==1
             handles.dropcProg.odorValve2=handles.dropcProg.odor_a_OdorValve;
             handles.dropcProg.typeOfOdor2=handles.dropcProg.odor_a_Odor;
             handles.dropcDraqOut.odor2=handles.dropcDraqOut.odorA;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor A'])
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 2: odor A'])
         else
             %odor b
             handles.dropcProg.odorValve2=handles.dropcProg.odor_b_OdorValve;
             handles.dropcProg.typeOfOdor2=handles.dropcProg.odor_b_Odor;
             handles.dropcDraqOut.odor2=handles.dropcDraqOut.odorB;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor B'])
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 2: odor B'])
         end
         
         
