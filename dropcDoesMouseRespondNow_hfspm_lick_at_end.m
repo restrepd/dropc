@@ -1,4 +1,4 @@
-function [handles,didMouseRespond]=dropcDoesMouseRespondNow_hfspm(handles)
+function [handles,didMouseRespond]=dropcDoesMouseRespondNow_hfspm_lick_at_end(handles)
 %	Does the mouse respond?
 
 
@@ -50,7 +50,7 @@ end
 
 %If mouse licked >= RA segments
 
-if sum(didLick)>=reqSegments
+if (didLick(end)==1)&(sum(didLick(1:end-1)==0))
     didMouseRespond=1;
 else
     didMouseRespond=0;

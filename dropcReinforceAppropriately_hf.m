@@ -146,7 +146,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
             %Correct Rejection
             
             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.correct_rejection+handles.dropcDraqOut.draq_trigger;
-            dropcUpdateDraqPort(ohandles);
+            dropcUpdateDraqPort(handles);
             
             start_toc=toc;
             while toc-start_toc<0.2

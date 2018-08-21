@@ -6,7 +6,7 @@ close all
 
 %First file name for output
 %IMPORTANT: Do not enter .mat
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\cerebellum3p';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\6-mmG7f09-cerebellum-nsampler';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'nsampler.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -39,14 +39,11 @@ handles.dropcProg.odorName{1}='mineral';
 handles.dropcProg.odorValves(2)=uint8(64);
 handles.dropcProg.odorName{2}='iso';
 
-handles.dropcProg.odorValves(3)=uint8(32);
-handles.dropcProg.odorName{3}='female';
-%
-% handles.dropcProg.odorValves(4)=uint8(8);
-% handles.dropcProg.odorName{4}='methyl salicylate';
+handles.dropcProg.odorValves(3)=uint8(8);
+handles.dropcProg.odorName{3}='femaleU';
 
-handles.dropcProg.odorValves(4)=uint8(16);
-handles.dropcProg.odorName{4}='male';
+handles.dropcProg.odorValves(4)=uint8(4);
+handles.dropcProg.odorName{4}='maleU';
 
 handles.dropcProg.odorValves(6)=uint8(32);
 handles.dropcProg.odorName{6}='2-octyne';

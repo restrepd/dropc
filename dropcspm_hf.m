@@ -1,4 +1,4 @@
-%% dropc_hf.m Close all
+%% Close all
 clear all
 close all
 
@@ -13,7 +13,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\11-CerebellarmmG06-20180315-spmmat';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\3-mmG7f10-cerebellum-spm.mat';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -38,10 +38,10 @@ handles.dropcProg.fvtime=1;
 handles.dropcProg.shortTime=0;
 
 %Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=4;  %Note: This must be at least two segments
+handles.dropcProg.noRAsegments=2;  %Note: This must be at least two segments
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
-handles.dropcProg.dt_ra=0.5;
+handles.dropcProg.dt_ra=2;
 
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
@@ -58,12 +58,13 @@ handles.dropcProg.sendShorts=0;
 
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
 %Please note that the duration of the light is set by Master 8
-handles.dropcProg.whenOptoOn=1;
+handles.dropcProg.whenOptoOn=0;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here.
 handles.dropcProg.dt_punish=10;
+handles.dropcProg.dt_iti=5;
 
 %Enter comment
 handles.comment='Test';
@@ -150,9 +151,9 @@ if handles.dropcProg.go_nogo==1
 else
     %go-go
     reinforceSminus=1;   %If this is one then reinforce regradless of the odor
-    dropcProg.doBuzz=1;
-    dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
-    dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
+    handles.dropcProg.doBuzz=1;
+    handles.dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
+    handles.dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
 
@@ -163,8 +164,8 @@ end
 handles=dropcInitializePortsNow(handles);
 
 fprintf(1, '\nWaiting for trigger...\n ');
-while getvalue(handles.dio.Line(34))==1
-end
+    while getvalue(handles.dio.Line(34))==1
+    end
 tic
 fprintf(1, '\nStart of session...\n ');
 
@@ -255,11 +256,17 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
     dropcTurnValvesOffNow(handles);
+    
+   
+    
     %Mouse must leave
     
     while dropcNosePokeNow(handles)==1
     end
     
+     start_iti=toc;
+    while toc-start_iti<handles.dropcProg.dt_iti
+    end
     
     %Output record of trial performance
     if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor
