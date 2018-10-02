@@ -1,3 +1,6 @@
+%dropcspm_WM runs a delayed non-match to sample (DMNS) working memory
+%task
+
 %% Close all
 clear all
 close all
@@ -428,6 +431,24 @@ if run_program==1
                 
                 handles.dropcDigOut.draqPortStatus=0;
                 dropcUpdateDraqPort(handles);
+                
+
+                %Turn off all odor valves
+                putvalue(handles.dio.Line(1:8),uint8(255));
+
+                %Divert final valve towards the exhaust
+                %Divert purge valve towards the port
+                dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
+                dataValue=bitcmp(dataValue);
+                putvalue(handles.dio.Line(17:24),dataValue);
+                
+                start_toc=toc;
+                while toc-start_toc<handles.dropcProg.fvtime
+                end
+                
+                %Divert final valve towards the port
+                %Divert purge valve towards exhaust
+                putvalue(handles.dio.Line(17:24),uint8(255));
                 
                 %Punish mouse for short
                 while toc-start_toc<handles.dropcProg.punishInterval
