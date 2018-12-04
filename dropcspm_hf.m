@@ -1,3 +1,4 @@
+%dropcspm_hf
 %% Close all
 clear all
 close all
@@ -58,6 +59,7 @@ handles.dropcProg.sendShorts=0;
 
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
 %Please note that the duration of the light is set by Master 8
+handles.dropcProg.randomOpto=1;
 handles.dropcProg.whenOptoOn=0;
 
 %If you want the computer to punish the mouse for a false alarm by not
@@ -181,6 +183,16 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     fprintf('\n')
     %Decide whether this is S+ or S-
+    
+    if handles.dropcProg.randomOpto==1
+        if rand>0.5
+            handles.dropcProg.whenOptoOn=1;
+        else
+            handles.dropcProg.whenOptoOn=0;
+        end
+        handles.dropcData.whenOptoOn(handles.dropcData.trialIndex)=handles.dropcProg.whenOptoOn;
+    end
+    
     if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
         %S+ odor
         handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;

@@ -102,7 +102,7 @@ if (noSamplesMouseOn/noSamples) > 0.2
             dataValue=uint8(0);
             putvalue(handles.dio.Line(9:12),dataValue);
             opto_on=1;
-            handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+%             handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
             %         end
         end
     end

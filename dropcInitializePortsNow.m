@@ -38,6 +38,9 @@ function handles=dropcInitializePortsNow(handles)
     %Turn off output to draq
     putvalue(handles.dio.Line(57:64),uint8(255));
     
+    %Turn off laser
+    putvalue(handles.dio.Line(9:12),uint8(15));
+    
     
     
     % Now get input from input ports
