@@ -358,7 +358,12 @@ if run_program==1
                         end
                     end
                 else
-                    
+                    %Odors are the same
+                    if didLick==1
+                         start_toc=toc;
+                        while toc-start_toc<handles.dropcProg.punishInterval
+                        end 
+                    end
                     start_time=toc;
                     while (toc-start_time<handles.dropcProg.rfTime)
                     end
