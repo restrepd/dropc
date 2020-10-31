@@ -35,15 +35,20 @@ handles.dropcProg.numberOfStimulations=4;
 
 %Time the odor is on
 handles.dropcProg.odorTime=30;
+% handles.dropcProg.odorTime=5;
 
 handles.dropcProg.preOdorTime=4*60;
+% handles.dropcProg.preOdorTime=5;
 
+% %Time shock is delivered
+handles.dropcProg.shockTime=1;
 
 %Enter final purge time
 handles.dropcProg.finalPurgeTime=5;
 
 %Enter delay interval
 handles.dropcProg.interTrialInterval=120;
+% handles.dropcProg.interTrialInterval=5;
 
 
 %Enter comment
@@ -73,7 +78,7 @@ handles.dropcData.trialIndex=1;     %These are all trials excluding shorts
 %Set the numbers for digital output to olfactometer DIO96H/50
 handles.dropcDioOut.final_valve=uint8(2);
 handles.dropcDioOut.purge_valve=uint8(4);
-handles.dropcDioOut.shock=uint8(2);
+handles.dropcDioOut.shock=uint8(255);
 handles.dropcDioOut.noise=uint8(8);
 handles.dropcDioOut.background_valve=uint8(3);
 handles.dropcDioOut.water_valve=uint8(1);
@@ -138,7 +143,7 @@ for trialIndex=1:handles.dropcProg.numberOfStimulations
     
     
     %Turn on odor valve
-    dataValue=handles.dropcProg.odorValve;
+    dataValue=handles.dropcProg.OdorValve;
     dataValue=bitcmp(uint8(dataValue));
     putvalue(handles.dio.Line(1:8),dataValue);
     
@@ -165,7 +170,17 @@ for trialIndex=1:handles.dropcProg.numberOfStimulations
     %Give shock
     dataValue = handles.dropcDioOut.shock;
     dataValue=bitcmp(dataValue);
-    putvalue(handles.dio.Line(5:8),dataValue);
+    putvalue(handles.dio.Line(9:16),dataValue);
+    
+    %Wait for the end of shock
+    this_time=toc;
+    while toc-this_time<handles.dropcProg.shockTime
+    end
+    
+    %Give shock
+    dataValue = uint8(0);
+    dataValue=bitcmp(dataValue);
+    putvalue(handles.dio.Line(9:16),dataValue);
     
     %Now purge out odor
     
@@ -203,7 +218,7 @@ for trialIndex=1:handles.dropcProg.numberOfStimulations
     while toc-this_time<handles.dropcProg.interTrialInterval
     end
     
-  
+    save(handles.dropcProg.output_file,'handles');
     
 end
 

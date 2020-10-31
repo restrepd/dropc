@@ -34,7 +34,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor
                 if optoOn
                     handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                 end
-                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
         end
         
         start_toc=toc;
@@ -60,7 +60,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor
                     case 1
                         handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                         handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,7,1);
-                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
                 end
                 
             end
@@ -95,7 +95,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor
                 if optoOn
                     handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                 end
-                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
         end
         
         
@@ -128,7 +128,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
                     if optoOn
                         handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                     end
-                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
             end
             
             
@@ -160,7 +160,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
                     if optoOn
                         handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                     end
-                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
             end
             
             
@@ -192,7 +192,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
                     if optoOn
                         handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                     end
-                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
             end
             
             
@@ -217,7 +217,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
                     if optoOn
                         handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
                     end
-                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
             end
             
             
@@ -247,7 +247,7 @@ if handles.acces==0
     dropcUpdateDraqPort(handles);
 else
     AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,0);
-    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,0);
+    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,255);
 end
 
 %Wait until time per trial is over

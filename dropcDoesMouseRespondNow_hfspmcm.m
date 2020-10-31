@@ -1,4 +1,4 @@
-function [handles,didMouseRespond]=dropcDoesMouseRespondNow_hfspm(handles)
+function [handles,didMouseRespond]=dropcDoesMouseRespondNow_hfspmcm(handles)
 %	Does the mouse respond?
 
 
@@ -19,7 +19,9 @@ didMousePoke=1;
 %Now take the animal through the RA
 
 
-
+toc_start=toc;
+while toc-toc_start<=handles.dropcProg.dt_break
+end
 
 reqSegments=handles.dropcProg.noRAsegments;
 

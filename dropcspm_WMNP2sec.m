@@ -17,7 +17,7 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\OLF2\Desktop\DRG5241953930tabapropip1_WM';
+handles.dropcProg.output_file='C:\Users\Olf1\Desktop\DEMJ3\10619ethylace2pentanonenp21sec_WM';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
@@ -51,7 +51,7 @@ handles.dropcProg.must_lick_segments=4;
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2;
 
 %Enter final purge time
 handles.dropcProg.finalPurgeTime=1;

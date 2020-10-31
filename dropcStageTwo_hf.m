@@ -13,16 +13,16 @@ while handles.dropcData.trialIndex<160
     while (resultOfTrial == -2)
         %While mouse is doing short samples
         
-        %Wait till the mouse pokes into the sampling chamber
-        while (dropcNosePokeNow(handles)==0)
+        %Wait till the mouse licks
+        while (sum(getvalue(handles.dio.Line(25:32)))==handles.dropcProg.sumNoLick)
         end
         
-        dropcFinalValveOKBegin_hf
+        dropcFinalValveOKBegin_hf(handles)
         
         
         trialResult=dropcDoesMouseRespondNow_hf(handles);
         handles.dropcData.trialTime(handles.dropcData.trialIndex)=toc;
-        
+         
         
         dropcTurnValvesOffNow(handles);
         handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.typeOfOdor;
@@ -34,7 +34,7 @@ while handles.dropcData.trialIndex<160
         handles.dropcData.eventTime(handles.dropcData.eventIndex)=toc;
         handles.dropcData.event(handles.dropcData.eventIndex)=6;
         
-        dropcReinforceAppropriately(handles);
+        dropcReinforceAppropriately_hf(handles);
         
         %Notify reinforcement given
         handles.dropcData.eventIndex=handles.dropcData.eventIndex+1;
@@ -42,7 +42,7 @@ while handles.dropcData.trialIndex<160
         handles.dropcData.event(handles.dropcData.eventIndex)=7;
         
         %Mouse must leave
-        while dropcNosePokeNow(handles)==1
+        while (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
         end
         
         resultOfTrial=1;

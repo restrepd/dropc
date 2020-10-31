@@ -1,4 +1,5 @@
-%% dropc_hf.m Close all
+%dropcspm_hf
+%% Close all
 clear all
 close all
 
@@ -13,7 +14,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\5-airctrl-mmPVG04-cerebellum-spm.mat';
+handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Connor\Data\132120_Thy1GC6f_GRIN_MCTX\9_6\132120_9_6_SPMHF_Thy1_MCTX_TL2_';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -23,12 +24,12 @@ end
 handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(64); %Make sure to use int8
+handles.dropcProg.splusOdorValve=uint8(16); %Make sure to use int8
 handles.dropcProg.splusName='ISA';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
+handles.dropcProg.sminusOdorValve=uint8(8); %Make sure to use int8
 handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -43,11 +44,14 @@ handles.dropcProg.noRAsegments=2;  %Note: This must be at least two segments
 %Enter response area DT for each response area segment (0.5 sec is usual)
 handles.dropcProg.dt_ra=2;
 
+%Break time
+handles.dropcProg.dt_break=2;
+
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2;
 
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -58,16 +62,17 @@ handles.dropcProg.sendShorts=0;
 
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
 %Please note that the duration of the light is set by Master 8
-handles.dropcProg.whenOptoOn=1;
+handles.dropcProg.randomOpto=0;
+handles.dropcProg.whenOptoOn=0;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here.
 handles.dropcProg.dt_punish=10;
-handles.dropcProg.dt_iti=5;
+handles.dropcProg.dt_iti=8;
 
 %Enter comment
-handles.comment='Test';
+handles.comment='';
 
 %Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
 % transitionToPartial=0;
@@ -151,9 +156,9 @@ if handles.dropcProg.go_nogo==1
 else
     %go-go
     reinforceSminus=1;   %If this is one then reinforce regradless of the odor
-    dropcProg.doBuzz=1;
-    dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
-    dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
+    handles.dropcProg.doBuzz=1;
+    handles.dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
+    handles.dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
 
@@ -164,8 +169,8 @@ end
 handles=dropcInitializePortsNow(handles);
 
 fprintf(1, '\nWaiting for trigger...\n ');
-while getvalue(handles.dio.Line(34))==1
-end
+    while getvalue(handles.dio.Line(34))==1
+    end
 tic
 fprintf(1, '\nStart of session...\n ');
 
@@ -181,6 +186,16 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     fprintf('\n')
     %Decide whether this is S+ or S-
+    
+    if handles.dropcProg.randomOpto==1
+        if rand>0.5
+            handles.dropcProg.whenOptoOn=1;
+        else
+            handles.dropcProg.whenOptoOn=0;
+        end
+        handles.dropcData.whenOptoOn(handles.dropcData.trialIndex)=handles.dropcProg.whenOptoOn;
+    end
+    
     if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
         %S+ odor
         handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
@@ -214,7 +229,9 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
-    dropcFinalValveOK_hf_air_puff(handles);
+    %Turn the diverter to exhaust, open odor valve, wait for final valve time
+    %and then turn the diverted back to the odor port
+    dropcFinalValveOK_hf(handles);
     
     %Odor on
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
@@ -225,7 +242,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
 
-    [handles,trialResult]=dropcDoesMouseRespondNow_hfspm(handles);
+    [handles,trialResult]=dropcDoesMouseRespondNow_hfspmcm(handles);
     
     
     %Turn opto TTL off
@@ -233,10 +250,6 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
         dataValue=uint8(15);
         putvalue(handles.dio.Line(9:12),dataValue);
     end
-    
-    %Turn FinalValve towards the odor port: turn purge to exhaust, turn on odor...)
-    dataValue=bitcmp(uint8(0));
-    putvalue(handles.dio.Line(17:24),dataValue);
     
     dropcTurnValvesOffNow(handles);
     
@@ -260,11 +273,17 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
     dropcTurnValvesOffNow(handles);
+    
+   
+    
     %Mouse must leave
     
     while dropcNosePokeNow(handles)==1
     end
     
+     start_iti=toc;
+    while toc-start_iti<handles.dropcProg.dt_iti
+    end
     
     %Output record of trial performance
     if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor

@@ -13,7 +13,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\7-mmG7f09-cerebellum-reversespm-gogo.mat';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\6-mmPVG04-cerebellum-reverse-gogo.mat';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end

@@ -4,12 +4,9 @@ close all
 
 %% User should change these variables
 
-%First file name prefix for output
-%IMPORTANT: Do not enter .mat
-handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Fabio\data\test.mat';
-if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
-    handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
-end
+%First file name for output
+%IMPORTANT: This should be a .mat file
+handles.dropcProg.output_file='C:\Users\Olf2\Desktop\DEMJ3\tes.mat';
 
 %Which begin stage do you want to start in (1 or 2)?
 handles.begin.initStage=2;
@@ -18,18 +15,11 @@ handles.begin.initStage=2;
 %Which block of stage 2 do you want the program to start in (1 to 7)?:
 handles.begin.initBlock=1;
 
-%Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
-%FOR BEGIN THIS DOES NOT MAKE A DIFFERENCE
-handles.dropcProg.go_nogo=1;
 
 %BEGIN WILL USE S+: Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=int8(64); %Make sure to use int8
-handles.dropcProg.splusName='isoamyl acetate';
+handles.dropcProg.splusOdorValve=int8(16); %Make sure to use int8
+handles.dropcProg.splusName='Isoamyl acetate';
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-%FOR BEGIN THIS DOES NOT MAKE A DIFFERENCE
-handles.dropcProg.sminusOdorValve=int8(128); %Make sure to use int8
-handles.dropcProg.sminusName='Mineral oil';
 
 %Enter final valve interval in sec (USE 1.2s FOR BEGIN)
 handles.dropcProg.fvtime=1.2;
@@ -47,7 +37,7 @@ handles.dropcProg.dt_ra=0.5;
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.4 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2;
 
 %Enter time per trial (sec, typical 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -55,6 +45,16 @@ handles.dropcProg.timePerTrial=8;
 
 %This program does not send shorts to the recording computer
 handles.dropcProg.sendShorts=0;
+
+%If you are using ACCES boards enter 1, for measurement computing enter 0
+handles.acces=1;
+
+%These are outputs in relays
+handles.acces_final_valve=64;
+handles.acces_water_valve=32;
+
+%These are outputs in PA
+handles.acces_laser=64;
 
 %Enter comment
 handles.comment='Test';
@@ -65,21 +65,15 @@ handles.comment='Test';
 %handles.dropcProg.skipIntervals=1;
 
 %% Initialize variables that the user will not change
-handles.dropcProg.which_program=mfilename;
- 
+
+
 % dropcData
 %Fellows random numbers are started randomly
 handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
-handles.dropcData.trialIndex=0;
-handles.dropcData.epochIndex=0;
-handles.dropcData.shortIndex=1;
+handles.dropcData.trialIndex=1;
 handles.dropcData.allTrialIndex=0;
-handles.dropcData.eventIndex=0;
-handles.dropcData.eventTime=zeros(1,1000);
-handles.dropcData.event=zeros(1,1000);
-handles.dropcData.ii_lick=zeros(1,300);
-handles.dropcData.lick_toc=zeros(300,300);
-handles.dropcData.program='dropcbegin.hf';
+handles.dropcData.oneTrialIndex=1;
+handles.dropcData.oneTrialTime=[];
 
 %Initialize the variables that define how the olfactometer runs
 % dropcProg
@@ -122,76 +116,87 @@ handles.dropcDioOut.water_valve=uint8(1);
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor
 handles.dropcProg.whenOptoOn=0;
 
-
-%Get the random Fellows numbers for choosing S+/S- for trials
-handles.dropcProg.randomFellows=dropcGetSlotnickOdorList();
-
-%Setup reinforcements depending on whether the user chose go-no go vs. go-go
-if handles.dropcProg.go_nogo==1
-    %go-no go
-    handles.dropcProg.fracReinforcement(1)=1.0;
-    handles.dropcProg.fracReinforcement(2)=0;
-    handles.dropcProg.doBuzz=0;
-    reinforceSminus=0;
-else
-    %go-go
-    reinforceSminus=1;
-    dropcProg.doBuzz=1;
-    dropcProg.fracReinforcement(1)=0.7;
-    dropcProg.fracReinforcement(2)=0.7;
+%% Then do all that needs to be done before the experiment starts
+file_exists=exist(handles.dropcProg.output_file,'file');
+run_program = 1;
+if file_exists==2
+    % Ask whether to overwrite
+    choice = questdlg('File exists. Overwrite?', ...
+        'Overwrite?', ...
+        'Yes','No','No');
+    % Handle response
+    switch choice
+        case 'Yes'
+            
+            run_program = 1;
+        case 'No'
+            
+            run_program = 0;
+            
+    end
 end
 
-% dropcProg.fracReinforcement(3)=0.5;
-% dropcProg.fracReinforcement(4)=1.0;
+
+
+%Har coded to go-no go choices
+handles.dropcProg.fracReinforcement(1)=1.0;
+handles.dropcProg.fracReinforcement(2)=0;
+handles.dropcProg.doBuzz=0;
+reinforceSminus=0;
+
 
 if handles.begin.initStage==1
     handles.begin.initBlock=1;
 end
 
 
-
-
 %% Now run the olfactometer
-
-
-%Initialize the DIO96H/50 before the mouse comes in
-handles=dropcInitializePortsNow(handles);
-
-%wait for the trigger
-fprintf(1, '\nWaiting for the trigger\n ');
-
-while getvalue(handles.dio.Line(34))==1
+if run_program==1
+    
+    %Initialize the DIO96H/50 before the mouse comes in
+    handles=dropcInitializePortsNow_ac(handles);
+    
+    % Ask user to get mouse in box
+    mouse_in_cage = 0;
+    while mouse_in_cage == 0
+        choice = questdlg('Now place ths mouse in the box: Is the mouse in?', ...
+            'Overwrite?', ...
+            'Yes','No','No');
+        % Handle response
+        switch choice
+            case 'Yes'
+                
+                mouse_in_cage = 1;
+            case 'No'
+                
+                mouse_in_cage = 0;
+                
+        end
+    end
+    tic
+    
+    handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
+    handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
+    
+    
+    handles.dropcData.ii_lick=[];
+    
+    if handles.begin.initStage==1
+        handles.startStage1=toc;
+        handles=dropcStageOne_ac(handles);
+        handles.elapsedStage1=toc;
+    end
+    
+    handles.startStage2=toc;
+    handles=dropcStageTwo_ac(handles);
+    handles.elapsedStage2=toc;
+    
+    save(handles.dropcProg.output_file,'handles');
+    
 end
-tic
-fprintf(1, '\nStart of session...\n ');
-
-%The filename will include the time in format 30:
-%ISO 8601: 'yyymmddTHHMMSS'
-formatOut=30;
-handles.dropcProg.output_file=[handles.dropcProg.output_file_prefix datestr(datetime,formatOut) 'begin.mat'];
 
 
-handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
-handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
-
-
-handles.dropcData.ii_lick=[];
-
-if handles.begin.initStage==1
-    handles.startStage1=toc;
-    handles=dropcStageOne(handles);
-    handles.elapsedStage1=toc;
-end
-
-handles.startStage2=toc;
-handles=dropcStageTwo_hf(handles);
-handles.elapsedStage2=toc;
-
-save(handles.dropcProg.output_file,'handles');
-
-
-
-delete(handles.dio)
+    delete(handles.dio)
 
 clear handles
 

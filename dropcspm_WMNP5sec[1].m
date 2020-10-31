@@ -17,19 +17,19 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\OLF2\Desktop\DRG5241953930tabapropip1_WM';
+handles.dropcProg.output_file='C:\Users\Olf2\Desktop\DEMJ3\415202124eathylace2pentanoNP5se11_WM';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
 %Enter odor a  valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_a_OdorValve=uint8(128); %Make sure to use int8
+handles.dropcProg.odor_a_OdorValve=uint8(4); %Make sure to use int8
 handles.dropcProg.odor_a_Name='aceto';
 
 
 %Enter odor b valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_b_OdorValve=uint8(64); %Make sure to use int8
+handles.dropcProg.odor_b_OdorValve=uint8(1); %Make sure to use int8
 handles.dropcProg.odor_b_Name='ethylben';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -51,13 +51,13 @@ handles.dropcProg.must_lick_segments=4;
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2;
 
 %Enter final purge time
 handles.dropcProg.finalPurgeTime=1;
 
 %Enter delay interval
-handles.dropcProg.delayInterval=2;
+handles.dropcProg.delayInterval=5;
 
 %Enter punish interval
 handles.dropcProg.punishInterval=10;

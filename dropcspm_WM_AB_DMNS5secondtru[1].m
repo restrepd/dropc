@@ -1,4 +1,4 @@
- %dropcspm_WM runs a delayed non-match to sample (DMNS) working memory
+%dropcspm_WM runs a delayed non-match to sample (DMNS) working memory
 %task
 
 %% Close all
@@ -11,26 +11,26 @@ close all
 % subplot(2,1,1)
 % title('Licks per trial. To stop execution Cntrl C')
 
-%% User should change these variables
+%% User   should           change these variables
 
 %To stop this program enter cntrl shift esc
 
-%First file name for output
+% %First file     name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\OLF2\Desktop\DRG5241953930tabapropip1_WM';
+handles.dropcProg.output_file='C:\Users\Olf2\Desktop\DEMJ3\53202125athylace2pentanoAB5se1c_WM';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
 %Enter odor a  valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_a_OdorValve=uint8(128); %Make sure to use int8
-handles.dropcProg.odor_a_Name='aceto';
+handles.dropcProg.odor_a_OdorValve=uint8(4); %Make sure to use int8
+handles.dropcProg.odor_a_Name='hep';
 
 
 %Enter odor b valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_b_OdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.odor_b_Name='ethylben';
+handles.dropcProg.odor_b_OdorValve=uint8(1); %Make sure to use int8
+handles.dropcProg.odor_b_Name='oct';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1.5;
@@ -42,22 +42,19 @@ handles.dropcProg.shortTime=0.5;
 handles.dropcProg.odorTime=1;
 
 %Enter response area DT for each rasponse area segment (0.5 sec is usual)
-handles.dropcProg.must_lick_dt=0.5;
-
-%Must lick segments
-handles.dropcProg.must_lick_segments=4;
+handles.dropcProg.must_lick_dt=0.2;
 
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2;
 
 %Enter final purge time
 handles.dropcProg.finalPurgeTime=1;
 
 %Enter delay interval
-handles.dropcProg.delayInterval=2;
+handles.dropcProg.delayInterval=5;
 
 %Enter punish interval
 handles.dropcProg.punishInterval=10;
@@ -204,19 +201,13 @@ if run_program==1
         %Decide which are odor 1 and 2
         
         %Odor 1
-        if (rand > 0.5)
+        
             %odor a
             handles.dropcProg.odorValve1=handles.dropcProg.odor_a_OdorValve;
             handles.dropcProg.typeOfOdor1=handles.dropcProg.odor_a_Odor;
             handles.dropcDraqOut.odor1=handles.dropcDraqOut.odorA;
             disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor A'])
-        else
-            %odor b
-            handles.dropcProg.odorValve1=handles.dropcProg.odor_b_OdorValve;
-            handles.dropcProg.typeOfOdor1=handles.dropcProg.odor_b_Odor;
-            handles.dropcDraqOut.odor1=handles.dropcDraqOut.odorB;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Odor 1: odor B'])
-        end
+     
         
         %Odor 2
         if (rand > 0.5)
@@ -315,25 +306,15 @@ if run_program==1
                 handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
                 dropcUpdateDraqPort(handles);
                 
-                
-                didLickSeg=zeros(1,handles.dropcProg.must_lick_segments);
-                
-                for ii_seg=1:handles.dropcProg.must_lick_segments
-                    end_toc=toc+handles.dropcProg.must_lick_dt;
-                    while (toc<end_toc)
-                        %lickStatus=dropcGetLickStatus(handles);
-                        if (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
-                            %sum(handles.dropcProg.noLick))
-                            %Mouse licked!
-                            didLickSeg(ii_seg)=1;
-                        end
+                end_toc=toc+handles.dropcProg.must_lick_dt;
+                didLick=0;
+                while (toc<end_toc)
+                    %lickStatus=dropcGetLickStatus(handles);
+                    if (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
+                        %sum(handles.dropcProg.noLick))
+                        %Mouse licked!
+                        didLick=1;
                     end
-                end
-                
-                if sum(didLickSeg)==handles.dropcProg.must_lick_segments
-                     didLick=1;
-                else
-                     didLick=0;
                 end
                 
                 was_reinforced=0;
@@ -371,12 +352,7 @@ if run_program==1
                         end
                     end
                 else
-                    %Odors are the same
-                    if didLick==1
-                         start_toc=toc;
-                        while toc-start_toc<handles.dropcProg.punishInterval
-                        end 
-                    end
+                    
                     start_time=toc;
                     while (toc-start_time<handles.dropcProg.rfTime)
                     end

@@ -58,8 +58,8 @@ if didMousePoke==1
         this_toc=toc;
         while (this_toc<end_toc)
             %lickStatus=dropcGetLickStatus(handles);
-            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=handles.dropcData.ii_lick(handles.dropcData.trialIndex)+1;
-            handles.dropcData.lick_toc(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=this_toc;
+%             handles.dropcData.ii_lick(handles.dropcData.trialIndex)=handles.dropcData.ii_lick(handles.dropcData.trialIndex)+1;
+%             handles.dropcData.lick_toc(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=this_toc;
             switch handles.acces
                 
                 case 0
@@ -68,9 +68,9 @@ if didMousePoke==1
                         %sum(handles.dropcProg.noLick))
                         %Mouse licked!
                         didLick(ii)=1;
-                        handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=1;
+%                         handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=1;
                     else
-                        handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=0;
+%                         handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=0;
                     end
                 case 1
                     %ACCES
@@ -87,9 +87,9 @@ if didMousePoke==1
                         %sum(handles.dropcProg.noLick))
                         %Mouse licked!
                         didLick(ii)=1;
-                        handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=1;
+%                         handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=1;
                     else
-                        handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=0;
+%                         handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=0;
                     end
                     
             end
@@ -148,7 +148,7 @@ else
             case 0
                 dropcUpdateDraqPort(handles);
             case 1
-                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
         end
         
         start_toc=toc;
@@ -161,7 +161,7 @@ else
         
         
     end
-    pause(handles.dropcProg.timePerTrial)
+%     pause(handles.dropcProg.timePerTrial)
 end
 
 

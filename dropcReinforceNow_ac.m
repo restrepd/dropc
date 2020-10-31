@@ -29,15 +29,15 @@ switch handles.acces
         dataValue=bitcmp(dataValue);
         putvalue(handles.dio.Line(17:24),dataValue);
     case 1
-        %Notify Data Wave
+        %Notify INTAN
         handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
         if optoOn
             handles.dropcDigOut.draqPortStatus=bitset(handles.dropcDigOut.draqPortStatus,8,1);
         end
-        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDigOut.draqPortStatus);
+        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
 
         %Turn on water valve
-        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,7);
+        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(handles.acces_water_valve),'uint8'));
         
 end
 
@@ -56,9 +56,10 @@ if handles.acces==0
     putvalue(handles.dio.Line(17:24),dataValue);
 else
     AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,0);
-    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,0);
+    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,255);
 end
 
+pffft=1;
 
 
 

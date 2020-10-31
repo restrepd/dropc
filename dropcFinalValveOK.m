@@ -47,7 +47,7 @@ if (handles.dropcProg.whenOptoOn==1)
     
 end
 
-%Notify draq
+%Notify INTAN
 if opto_on==0
     if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
         handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.s_plus;

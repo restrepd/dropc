@@ -63,7 +63,8 @@ switch handles.acces
         
     case 1
         %	Initialize the ACCES USBP-DIO16RO8
-        NET.addAssembly('C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\AIOUSBNet\v4.0_1.0.0.1__d76f0a196c9d89ea\AIOUSBNet.dll');
+        %C:\ACCES\AIOUSBNet\v4.0_1.0.0.1__d76f0a196c9d89ea
+        NET.addAssembly('C:\ACCES\AIOUSBNet\v4.0_1.0.0.1__d76f0a196c9d89ea\AIOUSBNet.dll');
         pause(2)
         import AIOUSBNet.AIOUSB.*
         
@@ -72,7 +73,7 @@ switch handles.acces
         %Here we configure PA to output and PB to input
         data_config = NET.createArray('System.Byte', 4);
         for ii=1:4
-            data_config(ii)=0;
+            data_config(ii)=255;
         end
         
         out_in_config = NET.createArray('System.Byte', 4);
@@ -80,12 +81,15 @@ switch handles.acces
             out_in_config(ii)=0;
         end
         out_in_config(1)=1;
+        out_in_config(3)=1;
         
         DIO_Configure(-3, 0, out_in_config, data_config);
         
         %Relays RO8
         %We will use the first six relays for odor valves
-        %Bits 0-5 is for valves
+        %Bits 0-5 is for valves 
+        %(5 will be used for the purge valve in the working
+        %memory task
         %Bit 6 of the relay bank  is the final valve
         %Bit 7 of the relay bank  is the water valve 
         
@@ -99,9 +103,19 @@ switch handles.acces
 
         %Turn off output to INTAN and laser
         %DIO_Write8(UInt32 DeviceIndex, UInt32 ByteIndex, out Byte pData)
+        
         %Byte indices 0 (PA) and 1 (PB) are TTLs and 2 is relays, values between 0 and 256
+        
+        %PA (0) is the output to INTAN (0 to 5) and laser (6)
+        %For PA 0=All off, 255=All on
         DIO_Write8(uint32(-3),0,0);
-        DIO_Write8(uint32(-3),2,0);
+        
+        %PB (1) is a read port PB 0 is lick input, future use PB1 trigger from outside, but is not used in this code yet
+        
+        %NC,NO (2) is relays, 255 is off
+        DIO_Write8(uint32(-3),2,255);
+         
+        pffft=1;
         
 end
 

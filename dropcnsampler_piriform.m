@@ -6,7 +6,7 @@ close all
 
 %First file name for output
 %IMPORTANT: Do not enter .mat
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\6-mmG7f09-cerebellum-nsampler';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\2-mmPD21_6f02_OBG7f09-OB_nsampler';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'nsampler.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -16,7 +16,7 @@ change_odor_in_each_trial=1;
 
 
 %Number of odors
-handles.dropcProg.noOdors=4;
+handles.dropcProg.noOdors=2;
 handles.dropcProg.phantomOdor=0;
 
 %Number of trials per odor
@@ -24,7 +24,7 @@ handles.dropcProg.trialsPerOdor=10;
 
 
 %Time between trials
-handles.dropcProg.dt_between_trials=10;
+handles.dropcProg.dt_between_trials=20;
 
 %Now enter the information for each odor in this order:
 %

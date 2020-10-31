@@ -56,7 +56,7 @@ handles.dropcProg.sendShorts=0;
 
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
 %Please note that the duration of the light is set by Master 8
-handles.dropcProg.whenOptoOn=1;
+handles.dropcProg.whenOptoOn=2;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
@@ -110,7 +110,7 @@ handles.dropcProg.sminusOdor=2;
 handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
 
-%Set the numbers for digital output to DT3010
+%Set the numbers for digital output to INTAN
 handles.dropcDraqOut.final_valve=uint8(6);
 handles.dropcDraqOut.opto_on=uint8(64);
 handles.dropcDraqOut.s_plus=uint8(1);

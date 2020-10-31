@@ -14,20 +14,21 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Diego Restrepo\Desktop\FCM\pffft5.mat';
+handles.dropcProg.output_file='C:\Users\Olf2\Desktop\DEMJ3\1212086286isomin.mat';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(8); %Make sure to use int8
-handles.dropcProg.splusName='EA';
+%Enter S+ valve (1,2,4,8) and odor name
+% can use 1,2,4,8
+handles.dropcProg.splusOdorValve=uint8(16); %Make sure to use int8
+handles.dropcProg.splusName='1% IA';
 
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(4); %Make sure to use int8
-handles.dropcProg.sminusName='PA';
+%Enter S- valve (1,2,4,8) and odor name
+handles.dropcProg.sminusOdorValve=uint8(8); %Make sure to use int8
+handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1.5;
@@ -45,7 +46,7 @@ handles.dropcProg.dt_ra=0.5;
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2; %CALIBRATE W NICOLE
 
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -56,7 +57,7 @@ handles.dropcProg.sendShorts=0;
 
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
 %Please note that the duration of the light is set by Master 8
-handles.dropcProg.whenOptoOn=1;
+handles.dropcProg.whenOptoOn=2;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
@@ -68,8 +69,13 @@ handles.comment='Test';
 
 %If you are using ACCES boards enter 1, for measurement computing enter 0
 handles.acces=1;
+
+%These are outputs in relays
 handles.acces_final_valve=64;
-handles.acces_water_valve=128;
+handles.acces_water_valve=32;
+
+%These are outputs in PA
+handles.acces_laser=64;
 
 
 %Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
@@ -116,7 +122,7 @@ handles.dropcProg.sminusOdor=2;
 handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
 
-%Set the numbers for digital output to DT3010
+%Set the numbers for digital output to INTAN
 handles.dropcDraqOut.final_valve=uint8(6);
 handles.dropcDraqOut.opto_on=uint8(64);
 handles.dropcDraqOut.s_plus=uint8(1);
@@ -127,10 +133,8 @@ handles.dropcDraqOut.hit=uint8(8);
 handles.dropcDraqOut.miss=uint8(10);
 handles.dropcDraqOut.correct_rejection=uint8(12);
 handles.dropcDraqOut.false_alarm=uint8(14);
-handles.dropcDraqOut.draq_trigger=uint8(128);   %Note: This was a trigger for the AM systems board, not used with INTAN
-                                                %For the ACCES board I am
-                                                %using this to turn on the
-                                                %laser
+% handles.dropcDraqOut.draq_trigger=uint8(128);   
+
 handles.dropcDraqOut.reinforcement=uint8(16);
 
 %Set the numbers for digital output to olfactometer DIO96H/50
@@ -234,22 +238,29 @@ if run_program==1
         if handles.dropcData.fellowsNo==201
             handles.dropcData.fellowsNo=1;
         end
-
-
+        
+        
         %Now run the trial
         resultOfTrial=-2;
         while (resultOfTrial == -2)
             %While mouse is doing short samples
-
+            
             %Wait till the mouse pokes into the sampling chamber
             while (dropcNosePokeNow_ac(handles)==0)
             end
+            
+            %Wait till the mouse pokes into the sampling chamber
+            %             the_output=0;
+            %             while (the_output==0)
+%                 the_output=dropcNosePokeNow_ac(handles)
+%             end
+
             handles.dropcData.startTrialTime=toc;
             handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
             if (dropcFinalValveOK_ac(handles)==1)
                 %This mouse stayed on during the final valve; do the
                 %single trial!
-
+ 
 
                 trialResult=dropcDoesMouseRespondNow_ac(handles);
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
@@ -272,20 +283,10 @@ if run_program==1
                             
                             dropcTurnValvesOffNow(handles);
                         case 1
-                            %Turn opto TTL off
+                            %Turn valves and opto TTL off
                             %ACCES
-                            %UInt32 DIO_ReadAll(UInt32 DeviceIndex, out UInt32 pData)
-                            data = NET.createArray('System.Byte', 4);
-                            AIOUSBNet.AIOUSB.DIO_ReadAll(-3, data);
-                            
-                            %If you enter 3, you are reading byte 2: relays
-                            %If you enter 1 you are reading PA
-                            %If you enter 2 you read PB
-                            PA_byte=data(1);
-                            PA_byte=bitset(PA_byte,8,0);
-                            PA_byte=bitset(PA_byte,7,0);
- 
-                            AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,PA_byte);
+                            AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,0);
+                            AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,255);
                     end
                     
                     handles.dropcData.trialTime(handles.dropcData.trialIndex)=toc;
@@ -306,7 +307,7 @@ if run_program==1
                         dropcTurnValvesOffNow(handles);
                     else
                         AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,0);
-                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,0);
+                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,255);
                     end
                     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
                     
@@ -333,7 +334,7 @@ if run_program==1
                         
                     else
                         AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,0);
-                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,0);
+                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,255);
                     end
                        
                     
@@ -362,7 +363,7 @@ if run_program==1
                             
                             dropcStartDraq(handles)
                         else
-                            AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,handles.dropcDraqOut.short_before);
+                            AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDraqOut.short_before));
                         end
                         
                         %Wait until time per trial is over
@@ -397,7 +398,7 @@ if run_program==1
                     dropcUpdateDraqPort(handles);
                 else
                     AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,0);
-                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,0);
+                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,255);
                 end
                 
                 %Wait until time per trial is over

@@ -1,4 +1,4 @@
-function finalValveOK = dropcFinalValveOK_WM1(handles)
+function finalValveOK = dropcFinalValveOK_WM1_ac(handles)
 %Opens final valve, purge valve odor on and finds out whtehr the mouse stays in the
 %odor sampling area
 
@@ -11,9 +11,6 @@ noSamplesMouseOn=0;
 
 %Otherwise, fvtime falls randomly between 1 and 1.5
 fvtime = 0.666666*handles.dropcProg.fvtime +0.333333*handles.dropcProg.fvtime*rand(1);
-
-
-
 
 
 %Notify draq, turn final valve and odor on, etc...
@@ -33,38 +30,26 @@ if (handles.dropcProg.whenOptoOn==1)
     handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
 end
 
-%Notify draq
+%Notify INTAN
 if opto_on==0
-    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
+    if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
+        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.s_plus;
+    else
+        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
+    end
 else
-    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
+    if (handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor)
+        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.s_plus+handles.acces_laser;
+    else
+        handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.acces_laser;
+    end
 end
-dropcUpdateDraqPort(handles);
-
-%Divert final valve towards the exhaust
-%Divert purge valve towards the port
-dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
-dataValue=bitcmp(dataValue);
-putvalue(handles.dio.Line(17:24),dataValue);
+AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
 
 
-%Turn on odor valve
-dataValue=handles.dropcProg.odorValve1;
-dataValue=bitcmp(uint8(dataValue));
-
-putvalue(handles.dio.Line(1:8),dataValue);
-
-
-
-
-% %if handles.dropcProg.skipIntervals==0
-% while (toc-start_toc<fvtime)
-%     noSamples=noSamples+1;
-%     if dropcNosePokeNow(handles)==1
-%         noSamplesMouseOn=noSamplesMouseOn+1;
-%     end
-% end
-%end
+%Divert final valve towards the exhaust and open purge valve
+AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(handles.acces_final_valve+...
+    handles.acces_purge_valve),'uint8'));
 
 
 %Turn on (or not) opto stimulus during odor delivery
@@ -96,32 +81,14 @@ else
     handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor1+handles.dropcDraqOut.opto_on;
 end
 
-
-dropcUpdateDraqPort(handles);
+AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
 
 
 %Turn FinalValve towards the odor port: turn on odor...)
-
-dataValue=bitcmp(uint8(0));
-putvalue(handles.dio.Line(17:24),dataValue);
-
-%Turn opto TTL off
-if (handles.dropcProg.whenOptoOn==1)
-    dataValue=uint8(15);
-    putvalue(handles.dio.Line(9:12),dataValue);
-end
-
- finalValveOK=1;
+AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(handles.dropcProg.odorValve),'uint8'));
 
 
-% if (fvtime<0.3)
-%     finalValveOK=1;
-% else
-%     
-%     if (noSamplesMouseOn/noSamples) > 0.2
-%         finalValveOK=1;
-%     else
-%         finalValveOK=0;
-%     end
-% end
+finalValveOK=1;
+
+
 

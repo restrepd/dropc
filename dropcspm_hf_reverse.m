@@ -13,7 +13,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\2-mmG7f09-cerebellum-reversespm.mat';
+handles.dropcProg.output_file_prefix='C:\Users\Justin\Documents\Diego\3-mmT29-6s02-OB-newodorreverse.mat';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -24,12 +24,12 @@ handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
 handles.dropcProg.splusOdorValve=uint8(128); %Make sure to use int8
-handles.dropcProg.splusName='MO';
+handles.dropcProg.splusName='ethyl acetate';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
 handles.dropcProg.sminusOdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.sminusName='ISA';
+handles.dropcProg.sminusName='acetophenone';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1;

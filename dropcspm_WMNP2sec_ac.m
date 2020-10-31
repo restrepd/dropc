@@ -17,19 +17,21 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\OLF2\Desktop\DRG5241953930tabapropip1_WM';
+handles.dropcProg.output_file='C:\Users\Olf1\Desktop\DEMJ3\10619ethylace2pentanonenp21sec_WM';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter odor a  valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_a_OdorValve=uint8(128); %Make sure to use int8
+%Enter odor a  valve (1,2,4,8,16,32) and odor name
+%DO NOT USE 64 and 128
+handles.dropcProg.odor_a_OdorValve=uint8(32); %Make sure to use int8
 handles.dropcProg.odor_a_Name='aceto';
 
 
 %Enter odor b valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.odor_b_OdorValve=uint8(64); %Make sure to use int8
+%DO NOT USE 64 and 128
+handles.dropcProg.odor_b_OdorValve=uint8(16); %Make sure to use int8
 handles.dropcProg.odor_b_Name='ethylben';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -51,7 +53,7 @@ handles.dropcProg.must_lick_segments=4;
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.2;
 
 %Enter final purge time
 handles.dropcProg.finalPurgeTime=1;
@@ -75,6 +77,18 @@ handles.dropcProg.whenOptoOn=1;
 
 %Enter comment
 handles.comment='Test';
+
+%If you are using ACCES boards enter 1, for measurement computing enter 0
+handles.acces=1;
+
+%These are outputs in relays
+handles.acces_final_valve=64;
+handles.acces_water_valve=32;
+handles.acces_purge_valve=128;
+
+%These are outputs in PA
+handles.acces_laser=128;
+
 
 %Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
 % transitionToPartial=0;
@@ -172,7 +186,7 @@ actual_trials=0;
 if run_program==1
     
     %Initialize the DIO96H/50 before the mouse comes in
-    handles=dropcInitializePortsNow(handles);
+    handles=dropcInitializePortsNow_ac(handles);
     
     % Ask user to get mouse in box
     mouse_in_cage = 0;
@@ -245,10 +259,10 @@ if run_program==1
             %While mouse is doing short samples
             
             %Wait till the mouse pokes into the sampling chamber
-            while (dropcNosePokeNow(handles)==0)
+            while (dropcNosePokeNow_ac(handles)==0)
             end
             
-            resultOfTrial=dropcFinalValveOK_WM1(handles);
+            resultOfTrial=dropcFinalValveOK_WM1_ac(handles);
             if (resultOfTrial==1)
                 
                 %Wait for the end of odor 1
@@ -258,23 +272,18 @@ if run_program==1
                 
                 %Turn off draq
                 handles.dropcDigOut.draqPortStatus=0;
-                dropcUpdateDraqPort(handles);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
                 
                 %Now purge out odor 1 and bring in odor 2 to the final
                 %valve
                 
                 %Divert final valve towards the exhaust
                 %Divert purge valve towards the port
-                dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
-                dataValue=bitcmp(dataValue);
-                putvalue(handles.dio.Line(17:24),dataValue);
+                %Turn on odor valve 2
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(handles.acces_final_valve+...
+                    handles.acces_purge_valve+handles.dropcProg.odorValve2),'uint8'));
                 
                 
-                %Turn on odor valve
-                dataValue=handles.dropcProg.odorValve2;
-                dataValue=bitcmp(uint8(dataValue));
-                
-                putvalue(handles.dio.Line(1:8),dataValue);
                 
                 %Wait for the delay interval
                 this_time=toc;
@@ -285,12 +294,11 @@ if run_program==1
                 
                 
                 %Turn FinalValve towards the odor port: turn on odor...)
-                dataValue=bitcmp(uint8(0));
-                putvalue(handles.dio.Line(17:24),dataValue);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(handles.dropcProg.odorValve2),'uint8'));
                 
                 %Notify draq of odor 2
                 handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.odor2;
-                dropcUpdateDraqPort(handles);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
                 
                 %Wait for the end of odor 2
                 this_time=toc;
@@ -299,40 +307,44 @@ if run_program==1
                 
                 %Divert final valve towards the exhaust
                 %Divert purge valve towards the port
-                dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
-                dataValue=bitcmp(dataValue);
-                putvalue(handles.dio.Line(17:24),dataValue);
-                
-                %Turn off all odor valves
-                putvalue(handles.dio.Line(1:8),uint8(255));
-                
-                
-                %Turn off draq
-                handles.dropcDigOut.draqPortStatus=0;
-                dropcUpdateDraqPort(handles);
-                
-                %Trigger
-                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.draq_trigger;
-                dropcUpdateDraqPort(handles);
-                
-                
-                didLickSeg=zeros(1,handles.dropcProg.must_lick_segments);
-                
-                for ii_seg=1:handles.dropcProg.must_lick_segments
-                    end_toc=toc+handles.dropcProg.must_lick_dt;
-                    while (toc<end_toc)
-                        %lickStatus=dropcGetLickStatus(handles);
-                        if (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
-                            %sum(handles.dropcProg.noLick))
-                            %Mouse licked!
-                            didLickSeg(ii_seg)=1;
-                        end
-                    end
-                end
-                
-                if sum(didLickSeg)==handles.dropcProg.must_lick_segments
+                 AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(handles.acces_final_valve+...
+                     handles.acces_purge_valve),'uint8'));
+                 
+                 
+                 %Turn off draq
+                 handles.dropcDigOut.draqPortStatus=0;
+                 AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
+                 
+                 
+                 didLickSeg=zeros(1,handles.dropcProg.must_lick_segments);
+                 
+                 for ii_seg=1:handles.dropcProg.must_lick_segments
+                     end_toc=toc+handles.dropcProg.must_lick_dt;
+                     while (toc<end_toc)
+                         %ACCES
+                         %UInt32 DIO_ReadAll(UInt32 DeviceIndex, out UInt32 pData)
+                         data = NET.createArray('System.Byte', 4);
+                         AIOUSBNet.AIOUSB.DIO_ReadAll(-3, data);
+                         
+                         %If you enter 3, you are reading byte 2: relays
+                         %If you enter 1 you are reading PA
+                         %If you enter 2 you read PB
+                         
+                         lickOn=bitand(1,data(2));
+                         if lickOn
+                             %sum(handles.dropcProg.noLick))
+                             %Mouse licked!
+                             didLickSeg(ii_seg)=1;
+                             %                         handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=1;
+                         else
+                             %                         handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=0;
+                         end
+                     end
+                 end
+                 
+                 if sum(didLickSeg)==handles.dropcProg.must_lick_segments
                      didLick=1;
-                else
+                 else
                      didLick=0;
                 end
                 
@@ -341,13 +353,14 @@ if run_program==1
                     if didLick==1
                         %Notify draq of reinforcement
                         handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
-                        dropcUpdateDraqPort(handles);
-                        dropcReinforceNow(handles);
+                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
+                        
+                        dropcReinforceNow_ac(handles);
                         was_reinforced=1;
                         
                         %Turn off draq
                         handles.dropcDigOut.draqPortStatus=0;
-                        dropcUpdateDraqPort(handles);
+                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
                         
                         actual_trials=actual_trials+1;
                         correct_per_trial(actual_trials)=1;
@@ -364,7 +377,7 @@ if run_program==1
                         end
                         %Turn off draq
                         handles.dropcDigOut.draqPortStatus=0;
-                        dropcUpdateDraqPort(handles);
+                        AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
                         
                         start_toc=toc;
                         while toc-start_toc<handles.dropcProg.punishInterval
@@ -382,7 +395,7 @@ if run_program==1
                     end
                     %Turn off draq
                     handles.dropcDigOut.draqPortStatus=0;
-                    dropcUpdateDraqPort(handles);
+                    AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
                     if didLick==1
                         actual_trials=actual_trials+1;
                         correct_per_trial(actual_trials)=0;
@@ -402,7 +415,7 @@ if run_program==1
                 
                 %Divert final valve towards the port
                 %Divert purge valve towards exhaust
-                putvalue(handles.dio.Line(17:24),uint8(255));
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(0),'uint8'));
                 
                 
                 
@@ -410,7 +423,7 @@ if run_program==1
                 
                 %Mouse must leave
                 
-                while dropcNosePokeNow(handles)==1
+                while dropcNosePokeNow_ac(handles)==1
                 end
                 
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
@@ -441,32 +454,30 @@ if run_program==1
                 disp('Short')
                 
                 handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.short;
-                dropcUpdateDraqPort(handles);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
+                        
                 
                 start_toc=toc;
                 while toc-start_toc<1
                 end
                 
                 handles.dropcDigOut.draqPortStatus=0;
-                dropcUpdateDraqPort(handles);
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),0,uint8(handles.dropcDigOut.draqPortStatus));
+                        
                 
 
                 %Turn off all odor valves
-                putvalue(handles.dio.Line(1:8),uint8(255));
+                %Divert final valve towards the port
+                %Divert purge valve towards exhaust
+                AIOUSBNet.AIOUSB.DIO_Write8(uint32(-3),2,bitcmp(uint8(0),'uint8'));
 
-                %Divert final valve towards the exhaust
-                %Divert purge valve towards the port
-                dataValue = handles.dropcDioOut.final_valve+handles.dropcDioOut.purge_valve;
-                dataValue=bitcmp(dataValue);
-                putvalue(handles.dio.Line(17:24),dataValue);
+            
                 
                 start_toc=toc;
                 while toc-start_toc<handles.dropcProg.fvtime
                 end
                 
-                %Divert final valve towards the port
-                %Divert purge valve towards exhaust
-                putvalue(handles.dio.Line(17:24),uint8(255));
+               
                 
                 %Punish mouse for short
                 while toc-start_toc<handles.dropcProg.punishInterval
