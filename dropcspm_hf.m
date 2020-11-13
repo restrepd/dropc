@@ -14,7 +14,7 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
-handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Connor\Data\132120_Thy1GC6f_GRIN_MCTX\9_6\132120_9_6_SPMHF_Thy1_MCTX_TL2_';
+handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Connor\Data\Fabio01';
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
 end
@@ -24,12 +24,12 @@ end
 handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(16); %Make sure to use int8
+handles.dropcProg.splusOdorValve=uint8(64); %Make sure to use int8
 handles.dropcProg.splusName='ISA';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(8); %Make sure to use int8
+handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
 handles.dropcProg.sminusName='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -219,7 +219,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     %Now run the trial
 
     %Wait till the mouse licks
-    while (dropcNosePokeNow(handles)==0)
+    while (sum(getvalue(handles.dio.Line(25:32)))==handles.dropcProg.sumNoLick)
     end
     
     %FV on
@@ -277,8 +277,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
    
     
     %Mouse must leave
-    
-    while dropcNosePokeNow(handles)==1
+    while (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
     end
     
      start_iti=toc;
