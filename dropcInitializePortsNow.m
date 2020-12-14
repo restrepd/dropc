@@ -5,7 +5,7 @@ function handles=dropcInitializePortsNow(handles)
     
     %Create the digital I/O object dio
     %The installed adaptors and hardware IDs are found with daqhwinfo
-    handles.dio = digitalio('mcc',1);
+    handles.dio = digitalio('mcc',0);
     
     %Add FIRSTPORTA for odor valves:
     addline(handles.dio,0:7,'out');

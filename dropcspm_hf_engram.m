@@ -1,4 +1,4 @@
-%dropcspm_hf
+%dropcspm_hf_engram
 %% Close all
 clear all
 close all
@@ -23,9 +23,12 @@ end
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.splusName='ISA';
+%Enter two S+ valves (1,2,4,8,16,32,64,128) and odor name
+handles.dropcProg.splusOdorValve1=uint8(64); %Make sure to use int8
+handles.dropcProg.splusName1='ISA';
+
+handles.dropcProg.splusOdorValve2=uint8(32); %Make sure to use int8
+handles.dropcProg.splusName2='ISA';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
@@ -111,7 +114,8 @@ handles.dropcData.shortIndex=1;
 handles.dropcProg.numTrPerBlock=20;
 handles.dropcProg.makeNoise = 0;
 handles.dropcProg.consoleOut=1;
-handles.dropcProg.splusOdor=1;
+handles.dropcProg.splusOdor1=0;
+handles.dropcProg.splusOdor2=1;
 handles.dropcProg.sminusOdor=2;
 handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
@@ -199,10 +203,19 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
         %S+ odor
-        handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
-        handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
-        handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor;
-        disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
+        
+        if rand>0.5
+            handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve1;
+            handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor1;
+            handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor1;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+1'])
+        else
+            handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve2;
+            handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor2;
+            handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor2;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+2'])
+        end
+
     else
         %S- odor
         handles.dropcProg.odorValve=handles.dropcProg.sminusOdorValve;
@@ -232,7 +245,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     %Turn the diverter to exhaust, open odor valve, wait for final valve time
     %and then turn the diverted back to the odor port
-    dropcFinalValveOK_hf(handles);
+    dropcFinalValveOK_hf_eng(handles);
     
     %Odor on
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
@@ -264,7 +277,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     %result_of_trial=trialResult
     disp(['Result of trial= ' num2str(trialResult)])
     handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
-    handles=dropcReinforceAppropriately_hf(handles);
+    handles=dropcReinforceAppropriately_hf_eng(handles);
     
     %Turn opto TTL off
     if (handles.dropcProg.whenOptoOn==3)
@@ -286,7 +299,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     end
     
     %Output record of trial performance
-    if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor
+    if (handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor1)|(handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor2)
         if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
             handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'Hit '];
             
@@ -333,7 +346,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     if handles.dropcData.trialIndex-1>=20
         for trialNo=1:handles.dropcData.trialIndex-1
-            if handles.dropcData.odorType(trialNo)==handles.dropcProg.splusOdor
+            if (handles.dropcData.odorType(trialNo)==handles.dropcProg.splusOdor1)|(handles.dropcData.odorType(trialNo)==handles.dropcProg.splusOdor2)
                 if handles.dropcData.trialScore(trialNo)==1
                     correctTrial(trialNo)=1;
                 else

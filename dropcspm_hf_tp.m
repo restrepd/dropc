@@ -1,4 +1,9 @@
-%dropcspm_hf
+%dropcspm_hf_tp
+%
+% This program runs a two pipe olfactometer session where one of two
+% odorants is delivered on the left or right tube
+%
+% The mouse is rewarded for liking for the S+ odor or the S+ side
 %% Close all
 clear all
 close all
@@ -23,14 +28,39 @@ end
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.splusName='ISA';
+%If handles.dropcProg.odor_rewarded=1 the odorant identity is rewarded, if
+%it is zero the delivery side is rewarded
+handles.dropcProg.odor_rewarded=1;
+
+if handles.dropcProg.odor_rewarded==1
+    disp('The S+ odorant is rewarded regardless of side of delivery')
+    disp(' ')
+end
+
+%If handles.dropcProg.odor_rewarded=0, and handles.dropcProg.left_rewarded=1
+%the mouse is rewarded for licking for the left delivery
+handles.dropcProg.left_rewarded=1;
+
+if (handles.dropcProg.odor_rewarded==0)
+    if handles.dropcProg.left_rewarded==1
+        disp('Left side delivery of odor is rewarded')
+        disp(' ')
+    else
+        disp('Right side delivery of odor is rewarded')
+        disp(' ')
+    end
+end
+
+%Enter S+ valves (left 1,2,4, right 8,16,32) and odor name
+handles.dropcProg.splusOdorValveLeft=uint8(1); %Make sure to use int8
+handles.dropcProg.splusOdorValveRight=uint8(8); %Make sure to use int8
+handles.dropcProg.splusName='Isoamyl acetate 1%';
 
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
-handles.dropcProg.sminusName='MO';
+%Enter S- valve (left 1,2,4, right 8,16,32) and odor name
+handles.dropcProg.sminusOdorValveLeft=uint8(2); %Make sure to use int8
+handles.dropcProg.sminusOdorValveRight=uint8(16); %Make sure to use int8
+handles.dropcProg.sminusName='Acetophenone 1%';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1;
@@ -113,11 +143,14 @@ handles.dropcProg.makeNoise = 0;
 handles.dropcProg.consoleOut=1;
 handles.dropcProg.splusOdor=1;
 handles.dropcProg.sminusOdor=2;
+handles.dropcProg.splusSide=1;
+handles.dropcProg.sminusSide=2;
 handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
 
 %Set the numbers for digital output to DT3010
-handles.dropcDraqOut.final_valve=uint8(6);
+handles.dropcDraqOut.final_valve_odor_rewarded=uint8(1);
+handles.dropcDraqOut.final_valve_side_rewarded=uint8(2);
 handles.dropcDraqOut.opto_on=uint8(64);
 handles.dropcDraqOut.s_plus=uint8(1);
 handles.dropcDraqOut.odor_onset=uint8(18);
@@ -197,15 +230,38 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
         handles.dropcData.whenOptoOn(handles.dropcData.trialIndex)=handles.dropcProg.whenOptoOn;
     end
     
+    if rand>0.5
+        handles.dropcProg.deliver_left=1;
+        disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; left'])
+        if handles.dropcProg.left_rewarded==1
+            handles.dropcProg.typeOfSide=handles.dropcProg.splusSide;
+            
+        else
+            handles.dropcProg.typeOfSide=handles.dropcProg.sminusSide;
+        end
+    else
+        handles.dropcProg.deliver_left=0;
+        disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; right'])
+        if handles.dropcProg.left_rewarded==1
+            handles.dropcProg.typeOfSide=handles.dropcProg.sminusSide;
+            
+        else
+            handles.dropcProg.typeOfSide=handles.dropcProg.splusSide;
+        end
+    end
+    handles.dropcData.deliver_left(handles.dropcData.trialIndex)=handles.dropcProg.deliver_left;
+    
     if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
         %S+ odor
-        handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
+        handles.dropcProg.odorValveLeft=handles.dropcProg.splusOdorValveLeft;
+        handles.dropcProg.odorValveRight=handles.dropcProg.splusOdorValveRight;
         handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
         handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.splusOdor;
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
     else
         %S- odor
-        handles.dropcProg.odorValve=handles.dropcProg.sminusOdorValve;
+        handles.dropcProg.odorValveLeft=handles.dropcProg.sminusOdorValveLeft;
+        handles.dropcProg.odorValveRight=handles.dropcProg.sminusOdorValveRight;
         handles.dropcProg.typeOfOdor=handles.dropcProg.sminusOdor;
         handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.sminusOdor;
         disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S-'])
@@ -232,7 +288,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     %Turn the diverter to exhaust, open odor valve, wait for final valve time
     %and then turn the diverted back to the odor port
-    dropcFinalValveOK_hf(handles);
+    dropcFinalValveOK_hf_tp(handles);
     
     %Odor on
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
@@ -240,18 +296,14 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochTime(handles.dropcData.epochIndex)=toc;
     odorOnTime=handles.dropcData.epochTime(handles.dropcData.epochIndex);
     handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+    handles.dropcData.epochDeliverySide(handles.dropcData.epochIndex)=handles.dropcProg.deliver_left;
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
 
     [handles,trialResult]=dropcDoesMouseRespondNow_hfspm(handles);
     
     
-    %Turn opto TTL off
-    if (handles.dropcProg.whenOptoOn==2)
-        dataValue=uint8(15);
-        putvalue(handles.dio.Line(9:12),dataValue);
-    end
-    
+    %Turn valves off
     dropcTurnValvesOffNow(handles);
     
     %Odor off
@@ -259,12 +311,13 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochEvent(handles.dropcData.epochIndex)=3;  %3 is odor off
     handles.dropcData.epochTime(handles.dropcData.epochIndex)=toc;
     handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
+    handles.dropcData.epochDeliverySide(handles.dropcData.epochIndex)=handles.dropcProg.deliver_left;
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
     %result_of_trial=trialResult
     disp(['Result of trial= ' num2str(trialResult)])
     handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
-    handles=dropcReinforceAppropriately_hf(handles);
+    handles=dropcReinforceAppropriately_hf_tp(handles);
     
     %Turn opto TTL off
     if (handles.dropcProg.whenOptoOn==3)
