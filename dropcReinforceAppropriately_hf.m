@@ -126,9 +126,22 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.false_alarm+handles.dropcDraqOut.draq_trigger;
             dropcUpdateDraqPort(handles);
             
+            if handles.dropcProg.click_punish==1
+                fs=20000;  % sampling frequency
+                click_width=100;
+                between_clicks=1000;
+                no_clicks=5;
+                clicks=[];
+                for ii=1:no_clicks
+                    clicks=[clicks zeros(1,between_clicks) ones(1,click_width)];
+                end
+                sound(clicks,fs);
+            end
+            
             start_toc=toc;
             while toc-start_toc<0.2
             end
+            
             
             if handles.dropcProg.dt_punish>0
                 do_dt_punish=1;

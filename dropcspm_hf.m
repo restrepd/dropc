@@ -69,6 +69,11 @@ handles.dropcProg.whenOptoOn=0;
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here.
 handles.dropcProg.dt_punish=10;
+
+%If you want the computer to punish the mouse with a click enter 1
+handles.dropcProg.click_punish=1;
+
+
 handles.dropcProg.dt_iti=8;
 
 %Enter comment
