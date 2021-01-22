@@ -5,7 +5,7 @@ function handles=dropcInitializePortsNow(handles)
     
     %Create the digital I/O object dio
     %The installed adaptors and hardware IDs are found with daqhwinfo
-    handles.dio = digitalio('mcc',0);
+    handles.dio = digitalio('mcc',1);
     
     %Add FIRSTPORTA for odor valves:
     addline(handles.dio,0:7,'out');
@@ -35,11 +35,11 @@ function handles=dropcInitializePortsNow(handles)
     %Now initialize the DIO96H/50
     dropcTurnValvesOffNow(handles);
     
+    %Turn laser trigger off
+    putvalue(handles.dio.Line(9:12),uint8(15));
+    
     %Turn off output to draq
     putvalue(handles.dio.Line(57:64),uint8(255));
-    
-    %Turn off laser
-    putvalue(handles.dio.Line(9:12),uint8(15));
     
     
     
