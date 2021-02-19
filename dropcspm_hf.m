@@ -39,10 +39,10 @@ handles.dropcProg.fvtime=1;
 handles.dropcProg.shortTime=0;
 
 %Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=2;  %Note: This must be at least two segments
+handles.dropcProg.noRAsegments=1;  %Note: This must be at least two segments
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
-handles.dropcProg.dt_ra=2;
+handles.dropcProg.dt_ra=1;
 
 %Evaluate last RA only
 handles.dropcProg.last_ra_only=1;
