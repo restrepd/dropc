@@ -31,8 +31,8 @@ for ii=1:handles.dropcProg.noRAsegments
     this_toc=toc;
     while (this_toc<end_toc)
         %lickStatus=dropcGetLickStatus(handles);
-        handles.dropcData.ii_lick(handles.dropcData.epochIndex)=handles.dropcData.ii_lick(handles.dropcData.epochIndex)+1;
-        handles.dropcData.lick_toc(handles.dropcData.epochIndex,handles.dropcData.ii_lick(handles.dropcData.epochIndex))=this_toc;
+%         handles.dropcData.ii_lick(handles.dropcData.epochIndex)=handles.dropcData.ii_lick(handles.dropcData.epochIndex)+1;
+%         handles.dropcData.lick_toc(handles.dropcData.epochIndex,handles.dropcData.ii_lick(handles.dropcData.epochIndex))=this_toc;
         if (handles.dropcProg.last_ra_only==1)&(ii~=handles.dropcProg.noRAsegments)
             didLick(ii)=1;
         else
@@ -40,9 +40,9 @@ for ii=1:handles.dropcProg.noRAsegments
                 %sum(handles.dropcProg.noLick))
                 %Mouse licked!
                 didLick(ii)=1;
-                handles.dropcData.lick(handles.dropcData.epochIndex,handles.dropcData.ii_lick(handles.dropcData.epochIndex))=1;
-            else
-                handles.dropcData.lick(handles.dropcData.epochIndex,handles.dropcData.ii_lick(handles.dropcData.epochIndex))=0;
+%                 handles.dropcData.lick(handles.dropcData.epochIndex,handles.dropcData.ii_lick(handles.dropcData.epochIndex))=1;
+%             else
+%                 handles.dropcData.lick(handles.dropcData.epochIndex,handles.dropcData.ii_lick(handles.dropcData.epochIndex))=0;
             end
         end
         this_toc=toc;

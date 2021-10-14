@@ -65,7 +65,7 @@ handles.dropcProg.whenOptoOn=2;
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here. 
-handles.dropcProg.dt_punish=0;
+handles.dropcProg.dt_punish=15;
 
 %Enter comment
 handles.comment='Test';
