@@ -1,3 +1,4 @@
+%This dropcspm calculates licks using the microphone input for the computer
 %% Close all
 clear all
 close all
@@ -14,11 +15,11 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Olf2\Desktop\Steinke\12202021_alfred_gogospm1.mat';
+handles.dropcProg.output_file='C:\Users\Olf2\Desktop\Steinke\11152021_test.mat';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
-handles.dropcProg.go_nogo=0;
+handles.dropcProg.go_nogo=1;
 
 %Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
 handles.dropcProg.splusOdorValve=uint8(1); %Make sure to use int8
@@ -26,7 +27,7 @@ handles.dropcProg.splusName='isoamyl acetate';
 
 
 %Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(4); %Make sure to use int8
+handles.dropcProg.sminusOdorValve=uint8(2); %Make sure to use int8
 handles.dropcProg.sminusName='mineral oil';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -54,31 +55,27 @@ handles.dropcProg.timePerTrial=8;
 %If you want this computer to save the odor shorts make this variable one
 handles.dropcProg.sendShorts=0;
 
-%Enforce shorts
-handles.dropcProg.enforceShorts=0; %Shorts will not be enforced
-
-%When do I turn the opto on? 0=no opto, 
-% 1-5 Odor delivered
-%1=FV
-%2=S+ with odor on
-%3=reward, 
-%
-%6 and up no odor delivered
-%6=S+, no odor
-%n
-%Please note that the duration of the light is set by Master 8 or Justin's
-%box
-handles.dropcProg.whenOptoOn=0;
+%When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
+%Please note that the duration of the light is set by Master 8
+handles.dropcProg.whenOptoOn=1;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here. 
 handles.dropcProg.dt_punish=16;
 
+
+%Microphone acquisition frequency
+handles.dropcProg.freq=20000; %In Hz
+
+%Microphone derivative threshold
+handles.dropcProg.thr=0.005;
+
 %Enter comment
 handles.comment='Test';
 
-
+%Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
+% transitionToPartial=0;
 
 %If transition to partial will take place: Start partial reinforcement immediately (0) or after criterion is reached (1)?
 % afterCriterion=1;
@@ -107,8 +104,6 @@ handles.dropcData.shortIndex=1;
 %Note: handles.dropcData.allTrialResult 0=not licked, 1=licked, 2=short
 %odor, 3=short FV
 
-% Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
-transitionToPartial=0;
 
 %Initialize the variables that define how the olfactometer runs
 % dropcProg
@@ -171,19 +166,19 @@ else
     dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
-dropcProg.fracReinforcement(3)=0.5;
-dropcProg.fracReinforcement(4)=1.0;
+% dropcProg.fracReinforcement(3)=0.5;
+% dropcProg.fracReinforcement(4)=1.0;
 
-%Setup transition to partial reinforcement
-if (transitionToPartial==1)
-    if (afterCriterion==0)
-        handles.dropcProg.fracReinforcement(1)=0.7;
-        handles.dropcProg.fracReinforcement(3)=0.7;
-        if (reinforceSminus==1)
-            handles.dropcProg.fracReinforcement(2)=0.7;
-        end
-    end
-end
+% %Setup transition to partial reinforcement
+% if (transitionToPartial==1)
+%     if (afterCriterion==0)
+%         handles.dropcProg.fracReinforcement(1)=0.7;
+%         handles.dropcProg.fracReinforcement(3)=0.7;
+%         if (reinforceSminus==1)
+%             handles.dropcProg.fracReinforcement(2)=0.7;
+%         end
+%     end
+% end
 
 
 
@@ -192,7 +187,7 @@ if run_program==1
 
     %Initialize the DIO96H/50 before the mouse comes in
     handles=dropcInitializePortsNow(handles);
- 
+
     % Ask user to get mouse in box
     mouse_in_cage = 0;
     while mouse_in_cage == 0
@@ -256,7 +251,7 @@ if run_program==1
                 %single trial!
 
 
-                trialResult=dropcDoesMouseRespondNow(handles);
+                trialResult=dropcDoesMouseRespondNowMic(handles);
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;

@@ -14,7 +14,7 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Olf2\Desktop\Steinke\12202021_alfred_gogospm1.mat';
+handles.dropcProg.output_file='C:\Users\Olf2\Desktop\Steinke\12202021_alfred_gogoDAY1PART2.mat';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
@@ -70,18 +70,24 @@ handles.dropcProg.enforceShorts=0; %Shorts will not be enforced
 %box
 handles.dropcProg.whenOptoOn=0;
 
+%If you use arduino UNO to determine licks
+handles.dropcProg.useUNO=1;
+
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here. 
 handles.dropcProg.dt_punish=16;
 
+% Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
+transitionToPartial=0;
+
+
 %Enter comment
 handles.comment='Test';
 
 
-
 %If transition to partial will take place: Start partial reinforcement immediately (0) or after criterion is reached (1)?
-% afterCriterion=1;
+afterCriterion=0;
 
 %Open valve for background odor (1=yes, 0=no)
 % handles.dropcProg.backgroundOdor=0;
@@ -107,8 +113,6 @@ handles.dropcData.shortIndex=1;
 %Note: handles.dropcData.allTrialResult 0=not licked, 1=licked, 2=short
 %odor, 3=short FV
 
-% Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
-transitionToPartial=0;
 
 %Initialize the variables that define how the olfactometer runs
 % dropcProg
@@ -163,16 +167,29 @@ if handles.dropcProg.go_nogo==1
     handles.dropcProg.fracReinforcement(2)=0; %Reinforcement for S-
     handles.dropcProg.doBuzz=0;
     reinforceSminus=0; %If this is zero reinforce only for hit, CR
+
 else
     %go-go
     reinforceSminus=1;   %If this is one then reinforce regradless of the odor
-    dropcProg.doBuzz=1;
-    dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
-    dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
+    handles.dropcProg.doBuzz=1;
+    handles.dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
+    handles.dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
-dropcProg.fracReinforcement(3)=0.5;
-dropcProg.fracReinforcement(4)=1.0;
+handles.dropcProg.fracReinforcement(3)=0.5;
+handles.dropcProg.fracReinforcement(4)=1.0;
+
+% OLD VERSION DON'T DELETE WITHOUT PERMISSION [lines 183-192]
+% else
+%     go-go
+%     reinforceSminus=1;   %If this is one then reinforce regradless of the odor
+%     dropcProg.doBuzz=1;
+%     dropcProg.fracReinforcement(1)=0.7;   %Reinforcement for S+
+%     dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
+% end
+% 
+% dropcProg.fracReinforcement(3)=0.5;
+% dropcProg.fracReinforcement(4)=1.0;
 
 %Setup transition to partial reinforcement
 if (transitionToPartial==1)
@@ -192,7 +209,7 @@ if run_program==1
 
     %Initialize the DIO96H/50 before the mouse comes in
     handles=dropcInitializePortsNow(handles);
- 
+
     % Ask user to get mouse in box
     mouse_in_cage = 0;
     while mouse_in_cage == 0
@@ -255,8 +272,11 @@ if run_program==1
                 %This mouse stayed on during the final valve; do the
                 %single trial!
 
-
-                trialResult=dropcDoesMouseRespondNow(handles);
+                if handles.dropcProg.useUNO==1
+                    trialResult=dropcDoesMouseRespondNowUNO(handles);  
+                else
+                    trialResult=dropcDoesMouseRespondNow(handles);
+                end
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;

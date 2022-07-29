@@ -23,7 +23,7 @@ switch handles.dropcProg.reward_location_vs_odor
                 
                 %Notify draq
                 %         if opto_on==0
-                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
+                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
                 %         else
                 %             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
                 %         end
@@ -70,7 +70,7 @@ switch handles.dropcProg.reward_location_vs_odor
                     
                     %Notify draq
                     %         if opto_on==0
-                    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
+                    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
                     %         else
                     %             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
                     %         end
@@ -121,7 +121,7 @@ switch handles.dropcProg.reward_location_vs_odor
                     
                     %Notify draq
                     %         if opto_on==0
-                    handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
+                      handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.reinforcement;
                     %         else
                     %             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
                     %         end

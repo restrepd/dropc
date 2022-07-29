@@ -308,7 +308,7 @@ if run_program==1
                 
                 end_toc=toc+handles.dropcProg.must_lick_dt;
                 didLick=0;
-                while (toc<end_toc)v34
+                while (toc<end_toc)
                     %lickStatus=dropcGetLickStatus(handles);
                     if (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
                         %sum(handles.dropcProg.noLick))

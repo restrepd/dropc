@@ -1,7 +1,7 @@
 function dropcReinforceAppropriately(handles)
 %Turns all valves off
 
-do_dt_punish=0;
+
 
 if handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor
     %S+
@@ -13,40 +13,17 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.splusOdor
         start_toc=toc;
         while toc-start_toc<0.2
         end
-        
-        
-        if rand(1)<=handles.dropcProg.fracReinforcement(1)
-            
-            %Turn on (or not) opto stimulus during reinforcement
-            opto_on=0;
-            handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=0;
-            
-            %Send out light pulse
-            if (handles.dropcProg.whenOptoOn==3)
 
-                dataValue=uint8(0);
-                putvalue(handles.dio.Line(9:12),dataValue);
-                opto_on=1;
-                handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
-        
-                
-            end
-            
-            %Notify draq
-            if opto_on==0
-                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve;
-            else
-                handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.final_valve+handles.dropcDraqOut.opto_on;
-            end
-            dropcUpdateDraqPort(handles);
-            
+
+        if rand(1)<=handles.dropcProg.fracReinforcement(1)
+
             dropcReinforceNow(handles);
             handles.dropcData.isReinforced(handles.dropcData.trialIndex)=1;
-            
+
         else
             handles.dropcData.isReinforced(handles.dropcData.trialIndex)=0;
         end
-        
+
     else
 
         %Miss
@@ -81,8 +58,9 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
 
             if rand(1)<=handles.dropcProg.fracReinforcement(2)
 
-
-                reinforceNow(handles);
+% DON'T DELETE LINE BELOW WITHOUT PERMISSION [61]
+%                 reinforceNow(handles);
+                dropcReinforceNow(handles);
                 handles.dropcData.isReinforced(handles.dropcData.trialIndex)=1;
 
             else
@@ -99,10 +77,6 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
             while toc-start_toc<0.2
             end
 
-            if handles.dropcProg.dt_punish>0
-                do_dt_punish=1;
-            end
-                
             handles.dropcData.isReinforced(handles.dropcData.trialIndex)=0;
 
         end
@@ -115,7 +89,7 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
             %Correct Rejection
 
             handles.dropcDigOut.draqPortStatus=handles.dropcDraqOut.correct_rejection+handles.dropcDraqOut.draq_trigger;
-            dropcUpdateDraqPort(ohandles);
+            dropcUpdateDraqPort(handles);
 
             start_toc=toc;
             while toc-start_toc<0.2
@@ -139,7 +113,8 @@ if handles.dropcProg.typeOfOdor==handles.dropcProg.sminusOdor
 
             if rand(1)<=handles.dropcProg.fracReinforcement(2)
 
-
+% DON'T DELETE LINE BELOW WITHOUT PERMISSION [117]
+%                 reinforceNow(handles);
                 dropcReinforceNow(handles);
                 handles.dropcData.isReinforced(handles.dropcData.trialIndex)=1;
 
@@ -158,12 +133,6 @@ dropcStartDraq(handles)
 %This turns all off
 handles.dropcDigOut.draqPortStatus=uint8(0);
 dropcUpdateDraqPort(handles);
-
-if do_dt_punish==1
-    start_toc=toc;
-    while toc-start_toc<handles.dropcProg.dt_punish
-    end
-end
 
 
 

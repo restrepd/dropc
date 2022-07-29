@@ -1,4 +1,4 @@
-function finalValveOK = dropcFinalValveOK(handles)
+function finalValveOK = dropcFinalValveOK_engram(handles)
 %Opens final valve and odor on and finds out whtehr the mouse stays in the
 %odor sampling area
 
@@ -25,7 +25,8 @@ else
 
 end
 
-
+% handles.dropcProg.whenOptoOn=2;
+% handles.dropcProg.fracOptoOn=0.3;
 
 %Notify draq, turn final valve and odor on, etc...
 
@@ -33,19 +34,19 @@ end
 %Turn on (or not) opto stimulus during FV
 opto_on=0;
 handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=0;
-if handles.dropcProg.whenOptoOn==1
-     %if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
-    %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
-    %if you want to randomly send TTL opto uncomment this line
-    %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
-    dataValue=bitand(bitcmp(uint8(8)),15); %Turns 12 on
-    putvalue(handles.dio.Line(9:12),dataValue);
-    opto_on=1;
-    handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
-    %         end
-    %end
-   
-end
+% if handles.dropcProg.whenOptoOn==1
+%      %if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
+%     %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
+%     %if you want to randomly send TTL opto uncomment this line
+%     %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1
+%     dataValue=bitand(bitcmp(uint8(8)),15); %Turns 12 on
+%     putvalue(handles.dio.Line(9:12),dataValue);
+%     opto_on=1;
+%     handles.dropcData.allTrialOptoOn(handles.dropcData.allTrialIndex+1)=1;
+%     %         end
+%     %end
+%    
+% end
 
 %Notify draq
 if opto_on==0
@@ -74,11 +75,19 @@ putvalue(handles.dio.Line(17:24),dataValue);
 
 
 %Turn on odor valve
-if handles.dropcProg.whenOptoOn~=6
-    dataValue=handles.dropcProg.odorValve;
-    dataValue=bitcmp(uint8(dataValue));
-    
-    putvalue(handles.dio.Line(1:8),dataValue);
+switch handles.dropcProg.whenOptoOn
+    case 1
+        %Turn on odor valve
+        dataValue=handles.dropcProg.odorValve;
+        dataValue=bitcmp(uint8(dataValue));
+        putvalue(handles.dio.Line(1:8),dataValue);
+    case 2
+        if handles.dropcProg.fracOptoOn(handles.dropcData.allTrialIndex+1)>0.3
+            %Turn on odor valve
+            dataValue=handles.dropcProg.odorValve;
+            dataValue=bitcmp(uint8(dataValue));
+            putvalue(handles.dio.Line(1:8),dataValue);
+        end
 end
 
 
@@ -110,8 +119,9 @@ opto_on=0;
 %If this is not a short then give the light
 if (noSamplesMouseOn/noSamples) > 0.2
 
-    if (handles.dropcProg.whenOptoOn==2)||(handles.dropcProg.whenOptoOn==6)
-        if handles.dropcProg.odorValve==handles.dropcProg.splusOdorValve %for S+
+    if (handles.dropcProg.whenOptoOn==2)
+        
+        if handles.dropcProg.fracOptoOn(handles.dropcData.allTrialIndex+1)<=0.3
             %if handles.dropcProg.odorValve==handles.dropcProg.sminusOdorValve %for S-
             %if you want to randomly send TTL opto uncomment this line
             %         if handles.dropcProg.randomOpto(handles.dropcData.fellowsNo)==1

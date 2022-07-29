@@ -114,8 +114,8 @@ handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
 handles.dropcData.trialIndex=1;     %These are all trials excluding shorts
 handles.dropcData.epochIndex=0;
 handles.dropcData.shortIndex=1;
-
-
+ 
+ 
 
 %Initialize the variables that define how the olfactometer runs
 % dropcProg

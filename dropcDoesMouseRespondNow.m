@@ -21,6 +21,10 @@ while toc-start_toc<handles.dropcProg.shortTime
     end
 end
 
+if handles.dropcProg.enforceShorts==0
+    didMousePoke=1;
+end
+
 %if (noSamplesMouseOn/noSamples) > 0.2
 if didMousePoke==1
     %Now take the animal through the RA
@@ -55,20 +59,13 @@ if didMousePoke==1
     
     for ii=1:handles.dropcProg.noRAsegments
         end_toc=toc+handles.dropcProg.dt_ra;
-        this_toc=toc;
-        while (this_toc<end_toc)
+        while (toc<end_toc)
             %lickStatus=dropcGetLickStatus(handles);
-            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=handles.dropcData.ii_lick(handles.dropcData.trialIndex)+1;
-            handles.dropcData.lick_toc(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=this_toc;
             if (sum(getvalue(handles.dio.Line(25:32)))~=handles.dropcProg.sumNoLick)
                 %sum(handles.dropcProg.noLick))
                 %Mouse licked!
                 didLick(ii)=1;
-                handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=1;
-            else
-                handles.dropcData.lick(handles.dropcData.trialIndex,handles.dropcData.ii_lick(handles.dropcData.trialIndex))=0;
             end
-            this_toc=toc;
         end
         
     end
@@ -125,9 +122,8 @@ else
         
         dropcStartDraq(handles)
         
-        
+        pause(handles.dropcProg.timePerTrial)
     end
-    pause(handles.dropcProg.timePerTrial)
 end
 
 

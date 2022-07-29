@@ -2,6 +2,8 @@
 clear all
 close all
 
+rng
+
 %% Setup the figure
 % figure(1)
 % hold on
@@ -58,17 +60,10 @@ handles.dropcProg.sendShorts=0;
 handles.dropcProg.enforceShorts=0; %Shorts will not be enforced
 
 %When do I turn the opto on? 0=no opto, 
-% 1-5 Odor delivered
-%1=FV
-%2=S+ with odor on
-%3=reward, 
-%
-%6 and up no odor delivered
-%6=S+, no odor
-%n
-%Please note that the duration of the light is set by Master 8 or Justin's
-%box
-handles.dropcProg.whenOptoOn=0;
+%1=regular spm
+%2=Stimulate with laser in 30% of the trials
+handles.dropcProg.whenOptoOn=2;
+handles.dropcProg.fracOptoOn=0.3;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
@@ -154,6 +149,9 @@ end
 
 %Get the random Fellows numbers for choosing S+/S- for trials
 [handles.dropcProg.randomFellows handles.dropcProg.randomOpto]=dropcGetSlotnickOdorList();
+
+%Generate a random sereies to decide when to turn the laser on
+handles.dropcProg.laser_rnd=rand(1,300);
 
 
 %Setup reinforcements depending on whether the user chose go-no go vs. go-go
@@ -251,7 +249,7 @@ if run_program==1
             while (dropcNosePokeNow(handles)==0)
             end
 
-            if (dropcFinalValveOK(handles)==1)
+            if (dropcFinalValveOK_engram(handles)==1)
                 %This mouse stayed on during the final valve; do the
                 %single trial!
 

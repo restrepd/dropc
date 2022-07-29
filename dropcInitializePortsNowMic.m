@@ -1,11 +1,11 @@
-function handles=dropcInitializePortsNow(handles)
+function handles=dropcInitializePortsNowMic(handles)
 %	Initialize the DIO96H/50
 
 
     
     %Create the digital I/O object dio
     %The installed adaptors and hardware IDs are found with daqhwinfo
-    handles.dio = digitalio('mcc',0);
+    handles.dio = digitalio('mcc',1);
     
     %Add FIRSTPORTA for odor valves:
     addline(handles.dio,0:7,'out');
@@ -38,8 +38,7 @@ function handles=dropcInitializePortsNow(handles)
     %Turn off output to draq
     putvalue(handles.dio.Line(57:64),uint8(255));
     
-    %Turn off laser and UNO outpur
-    putvalue(handles.dio.Line(9:12),15);
+    
     
     % Now get input from input ports
     % Note: It is important that this be done without the animal in the cage
@@ -53,5 +52,21 @@ function handles=dropcInitializePortsNow(handles)
     %Turn off output to draq
     handles.dropcDigOut.draqPortStatus=uint8(0);
     dropcUpdateDraqPort(handles);
-    pffft=1
+    
+    
+    %Initialize microphone input
+    
+    %Create analog input object
+    handles.ai=analoginput('winsound'); 
+
+
+    %Add channels
+    addchannel(handles.ai,1);
+    
+    %Set frequency
+    set(handles.ai,'SampleRate',handles.dropcProg.freq)
+    
+    %Set samples per trigger
+    dt=handles.dropcProg.shortTime+handles.dropcProg.noRAsegments*handles.dropcProg.dt_ra;
+    set(handles.ai,'SamplesPerTrigger',freq*dt)
     

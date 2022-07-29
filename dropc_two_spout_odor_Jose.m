@@ -1,3 +1,8 @@
+%dropc_two_spout_odor
+%
+% Presents the rewarded odor randomly on the left or tight spout
+% Rewards for odor or for locaiton of the spout (left vs. right)
+%
 %% Close all
 clear all
 close all
@@ -14,20 +19,50 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Olf2\Desktop\Steinke\12202021_alfred_gogospm1.mat';
-%handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
+handles.dropcProg.output_file='C:\Users\Mini Fabio\Desktop\DEMJ3\101821test.mat';
+%handles.dropcProg.output_file='/Users/restrepd/Desktop/Jose/.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
-handles.dropcProg.go_nogo=0;
+handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.splusOdorValve=uint8(1); %Make sure to use int8
-handles.dropcProg.splusName='isoamyl acetate';
+%Reward for odor or for space?
+handles.dropcProg.reward_location_vs_odor=0; %0=reward for licks regardless of locaiton (begin), 1=reward for odor, 2=reward for location
 
+%Which side is rewarded if reward is given based on spout location
+handles.dropcProg.reward_left_vs_right=1; %0= reward for licks on left spout, 1= reward for licks on right spout
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(4); %Make sure to use int8
-handles.dropcProg.sminusName='mineral oil';
+switch handles.dropcProg.reward_location_vs_odor
+    case 0
+        disp(['dropc_two_spout_odor rewarded on both spouts for begin'])
+    case 1
+        disp(['dropc_two_spout_odor rewarded for the odor'])
+    case 2
+        disp(['dropc_two_spout_odor rewarded for the spout location (left vs. right)'])
+end
+
+if handles.dropcProg.reward_location_vs_odor==2
+    if handles.dropcProg.reward_left_vs_right==1
+        disp(['Mouse will be rewarded at the right spout'])
+    else
+        disp(['Mouse will be rewarded at the left spout'])
+    end
+end
+
+handles.dropcProg.typeOfOdor=1; %handles.dropcProg.splusOdor=1;
+
+%Enter left valves (1,2,4) and odor name
+handles.dropcProg.rewardedOdorValveLeft=uint8(2); %Make sure to use int8
+handles.dropcProg.rewardedOdorNameLeft='Isoamyl Acetate';
+
+handles.dropcProg.otherOdorValveLeft=uint8(1); %no reward Make sure to use int8
+handles.dropcProg.otherOdorNameLeft='Mineral Oil';
+
+%Enter right valves (8,16,32) and odor name
+handles.dropcProg.rewardedOdorValveRight=uint8(8); %Make sure to use int8
+handles.dropcProg.rewardedOdorNameRight='Isoamyl Acetate';
+
+handles.dropcProg.otherOdorValveRight=uint8(32); %No rewardMake sure to use int8
+handles.dropcProg.otherOdorNameRight='Mineral Oil';
 
 %Enter final valve interval in sec (1.5 sec is usual)
 handles.dropcProg.fvtime=1.5;
@@ -38,14 +73,14 @@ handles.dropcProg.shortTime=0.5;
 %Enter number of response area segments (usually 4, must be less than 6)
 handles.dropcProg.noRAsegments=4;
 
-%Enter response area DT for each rasponse area segment (0.5 sec is usual)
+%Enter response area DT for each response area segment (0.5 sec is usual)
 handles.dropcProg.dt_ra=0.5;
 
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.25; %0.3
 
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -54,31 +89,23 @@ handles.dropcProg.timePerTrial=8;
 %If you want this computer to save the odor shorts make this variable one
 handles.dropcProg.sendShorts=0;
 
-%Enforce shorts
-handles.dropcProg.enforceShorts=0; %Shorts will not be enforced
+%When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
+%Please note that the duration of the light is set by Master 8
+handles.dropcProg.whenOptoOn=2;
 
-%When do I turn the opto on? 0=no opto, 
-% 1-5 Odor delivered
-%1=FV
-%2=S+ with odor on
-%3=reward, 
-%
-%6 and up no odor delivered
-%6=S+, no odor
-%n
-%Please note that the duration of the light is set by Master 8 or Justin's
-%box
-handles.dropcProg.whenOptoOn=0;
+%If you use arduino UNO to determine licks
+handles.dropcProg.useUNO=1;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here. 
-handles.dropcProg.dt_punish=16;
+handles.dropcProg.dt_punish=0;
 
 %Enter comment
 handles.comment='Test';
 
-
+%Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
+% transitionToPartial=0;
 
 %If transition to partial will take place: Start partial reinforcement immediately (0) or after criterion is reached (1)?
 % afterCriterion=1;
@@ -93,12 +120,14 @@ handles.comment='Test';
 %% Initialize variables that the user will not change
 
 handles.dropcData.trialPerformance=[];
+handles.dropcData.ii_lick=[];
 percent_corr_str=[];
 block=0;
 
 % dropcData
 %Fellows random numbers are started randomly
 handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
+
 handles.dropcData.trialIndex=1;     %These are all trials excluding shorts
 handles.dropcData.allTrialIndex=0;  %These are all trials including short and long trials
 handles.dropcData.shortIndex=1;
@@ -107,8 +136,6 @@ handles.dropcData.shortIndex=1;
 %Note: handles.dropcData.allTrialResult 0=not licked, 1=licked, 2=short
 %odor, 3=short FV
 
-% Transition to partial reinforcement after reaching criterion? (1=yes, 0=no)
-transitionToPartial=0;
 
 %Initialize the variables that define how the olfactometer runs
 % dropcProg
@@ -122,7 +149,7 @@ handles.dropcProg.sminusOdor=2;
 handles.dropcProg.sumPdOn=7;
 handles.dropcProg.sumNoLick=8;
 
-%Set the numbers for digital output to DT3010
+%Set the numbers for digital output to INTAN
 handles.dropcDraqOut.final_valve=uint8(6);
 handles.dropcDraqOut.opto_on=uint8(64);
 handles.dropcDraqOut.s_plus=uint8(1);
@@ -137,11 +164,14 @@ handles.dropcDraqOut.draq_trigger=uint8(128);
 handles.dropcDraqOut.reinforcement=uint8(16);
 
 %Set the numbers for digital output to olfactometer DIO96H/50
-handles.dropcDioOut.final_valve=uint8(2);
+handles.dropcDioOut.final_valveLeft=uint8(4);
+handles.dropcDioOut.final_valveRight=uint8(2);
 handles.dropcDioOut.purge_valve=uint8(4);
 handles.dropcDioOut.noise=uint8(8);
 handles.dropcDioOut.background_valve=uint8(3);
 handles.dropcDioOut.water_valve=uint8(1);
+handles.dropcDioOut.water_valve_left=uint8(8);
+handles.dropcDioOut.water_valve_right=uint8(1);
 
 %% Then do all that needs to be done before the experiment starts
 file_exists=exist(handles.dropcProg.output_file,'file');
@@ -171,19 +201,6 @@ else
     dropcProg.fracReinforcement(2)=0.7;   %Reinforcement of S-
 end
 
-dropcProg.fracReinforcement(3)=0.5;
-dropcProg.fracReinforcement(4)=1.0;
-
-%Setup transition to partial reinforcement
-if (transitionToPartial==1)
-    if (afterCriterion==0)
-        handles.dropcProg.fracReinforcement(1)=0.7;
-        handles.dropcProg.fracReinforcement(3)=0.7;
-        if (reinforceSminus==1)
-            handles.dropcProg.fracReinforcement(2)=0.7;
-        end
-    end
-end
 
 
 
@@ -192,7 +209,7 @@ if run_program==1
 
     %Initialize the DIO96H/50 before the mouse comes in
     handles=dropcInitializePortsNow(handles);
- 
+
     % Ask user to get mouse in box
     mouse_in_cage = 0;
     while mouse_in_cage == 0
@@ -220,17 +237,23 @@ if run_program==1
         %Do one trial
 
         fprintf('\n')
-        %Decide whether this is S+ or S-
+        %Decide whether rewarded odor is on the left or right
         if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
-            %S+ odor
-            handles.dropcProg.odorValve=handles.dropcProg.splusOdorValve;
-            handles.dropcProg.typeOfOdor=handles.dropcProg.splusOdor;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S+'])
+            %Rewarded odor on the left side
+            handles.dropcProg.rewarded_odor_side=0; %Rewarded odor is on the left side
+            handles.dropcProg.odorValveLeft=handles.dropcProg.rewardedOdorValveLeft;
+            handles.dropcProg.left_typeOfOdor=handles.dropcProg.rewardedOdorNameLeft;
+            handles.dropcProg.odorValveRight=handles.dropcProg.otherOdorValveRight;
+            handles.dropcProg.right_typeOfOdor=handles.dropcProg.otherOdorNameRight;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the left'])
         else
-            %S- odor
-            handles.dropcProg.odorValve=handles.dropcProg.sminusOdorValve;
-            handles.dropcProg.typeOfOdor=handles.dropcProg.sminusOdor;
-            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; S-'])
+            %Rewarded odor on the right side
+            handles.dropcProg.rewarded_odor_side=1; %Rewarded odor is on the left side
+            handles.dropcProg.odorValveRight=handles.dropcProg.rewardedOdorValveRight;
+            handles.dropcProg.right_typeOfOdor=handles.dropcProg.rewardedOdorNameRight;
+            handles.dropcProg.odorValveLeft=handles.dropcProg.otherOdorValveLeft;
+            handles.dropcProg.left_typeOfOdor=handles.dropcProg.otherOdorNameLeft;
+            disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the right'])
         end
 
         handles.dropcData.fellowsNo=handles.dropcData.fellowsNo+1;
@@ -247,21 +270,25 @@ if run_program==1
         while (resultOfTrial == -2)
             %While mouse is doing short samples
 
-            %Wait till the mouse pokes into the sampling chamber
-            while (dropcNosePokeNow(handles)==0)
+            %Wait till the mouse licks on either spout
+            while (sum(getvalue(handles.dio.Line(27:28)))==2)
             end
-
-            if (dropcFinalValveOK(handles)==1)
+            
+            handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
+            if (dropcFinalValveOK_two_spout(handles)==1)
                 %This mouse stayed on during the final valve; do the
                 %single trial!
 
 
-                trialResult=dropcDoesMouseRespondNow(handles);
+                [trialResult, left_right]=dropcDoesMouseRespondNow_two_spout(handles);
                 handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
                 handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
+                handles.dropcData.allTrial_left_right(handles.dropcData.allTrialIndex)=left_right;
                 handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
-                handles.dropcData.allTrialTypeOfOdor(handles.dropcData.allTrialIndex)=handles.dropcProg.typeOfOdor;
-
+                handles.dropcData.allTrialLeftTypeOfOdor{handles.dropcData.allTrialIndex}=handles.dropcProg.left_typeOfOdor;
+                handles.dropcData.allTrialRightTypeOfOdor{handles.dropcData.allTrialIndex}=handles.dropcProg.right_typeOfOdor;
+                 handles.dropcData.allTrial_rewarded_odor_side(handles.dropcData.allTrialIndex)=handles.dropcProg.rewarded_odor_side;
+                handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
                 if (trialResult~=2)
                     %This is a go
                     
@@ -273,13 +300,21 @@ if run_program==1
                     
                     dropcTurnValvesOffNow(handles);
                     handles.dropcData.trialTime(handles.dropcData.trialIndex)=toc;
-                    handles.dropcData.odorType(handles.dropcData.trialIndex)=handles.dropcProg.typeOfOdor;
-                    handles.dropcData.odorValve(handles.dropcData.trialIndex)=handles.dropcProg.odorValve;
+                    handles.dropcData.odorTypeLeft{handles.dropcData.trialIndex}=handles.dropcProg.left_typeOfOdor;
+                    handles.dropcData.odorValveleft(handles.dropcData.trialIndex)=handles.dropcProg.odorValveLeft;
+                    handles.dropcData.odorTypeRight{handles.dropcData.trialIndex}=handles.dropcProg.right_typeOfOdor;
+                    handles.dropcData.odorValveright(handles.dropcData.trialIndex)=handles.dropcProg.odorValveRight;
+                    handles.dropcData.rewarded_odor_side(handles.dropcData.trialIndex)=handles.dropcProg.rewarded_odor_side;
                     handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
+                    handles.dropcData.left_right(handles.dropcData.trialIndex)=left_right;
                     
                     %result_of_trial=trialResult
-                    disp(['Result of trial= ' num2str(trialResult)])
-                    dropcReinforceAppropriately(handles);
+                    if left_right==0
+                        disp(['Left port, mouse licked= ' num2str(trialResult)])
+                    else
+                        disp(['Right port, mouse licked = ' num2str(trialResult)])
+                    end
+                    dropcReinforceAppropriately_two_spout(handles,left_right,trialResult);
                     
                     %Turn opto TTL off 
                     if (handles.dropcProg.whenOptoOn==3)
@@ -289,9 +324,9 @@ if run_program==1
                     
                     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
                     dropcTurnValvesOffNow(handles);
+                    
                     %Mouse must leave
-
-                    while dropcNosePokeNow(handles)==1
+                    while (sum(getvalue(handles.dio.Line(27:28)))~=2)
                     end
 
                     resultOfTrial=1;
@@ -375,21 +410,28 @@ if run_program==1
         end
 
         %Output record of trial performance
-
-        if handles.dropcData.odorType(handles.dropcData.trialIndex-1)==handles.dropcProg.splusOdor
-            if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+        if handles.dropcProg.reward_location_vs_odor==1
+            %Mouse was rewarded for the odor
+            if (handles.dropcProg.rewarded_odor_side==left_right)&(trialResult==1)
+                 correctTrial(handles.dropcData.trialIndex-1)=1;
+                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
             else
                 handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
-            end
-        else
-            if handles.dropcData.trialScore(handles.dropcData.trialIndex-1)==1
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
-            else
-                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+                correctTrial(handles.dropcData.trialIndex-1)=0;
             end
         end
-
+        
+        if handles.dropcProg.reward_location_vs_odor==2
+            %Mouse was rewarded for the odor
+            if (handles.dropcProg.reward_left_vs_right==left_right)&(trialResult==1)
+                correctTrial(handles.dropcData.trialIndex-1)=1;
+                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'X'];
+            else
+                handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance 'O'];
+                correctTrial(handles.dropcData.trialIndex-1)=0;
+            end
+        end
+        
         if rem(handles.dropcData.trialIndex,20)==1
             handles.dropcData.trialPerformance=[handles.dropcData.trialPerformance ' '];
         end
@@ -397,21 +439,21 @@ if run_program==1
         dropcDisplayOutString(handles.dropcData.trialPerformance)
 
         if handles.dropcData.trialIndex-1>=20
-            for trialNo=1:handles.dropcData.trialIndex-1
-                if handles.dropcData.odorType(trialNo)==handles.dropcProg.splusOdor
-                    if handles.dropcData.trialScore(trialNo)==1
-                        correctTrial(trialNo)=1;
-                    else
-                        correctTrial(trialNo)=0;
-                    end
-                else
-                    if handles.dropcData.trialScore(trialNo)==1
-                        correctTrial(trialNo)=0;
-                    else
-                        correctTrial(trialNo)=1;
-                    end
-                end
-            end
+%             for trialNo=1:handles.dropcData.trialIndex-1
+%                 if handles.dropcData.odorType(trialNo)==handles.dropcProg.splusOdor
+%                     if handles.dropcData.trialScore(trialNo)==1
+%                         correctTrial(trialNo)=1;
+%                     else
+%                         correctTrial(trialNo)=0;
+%                     end
+%                 else
+%                     if handles.dropcData.trialScore(trialNo)==1
+%                         correctTrial(trialNo)=0;
+%                     else
+%                         correctTrial(trialNo)=1;
+%                     end
+%                 end
+%             end
 
             max_block=floor((handles.dropcData.trialIndex-1)/20);
             if handles.dropcData.trialIndex>1
@@ -422,14 +464,7 @@ if run_program==1
                 end
             end
 
-            %             blockNo=1:max_block;
-            %             plot(blockNo,percent_correct,'x-r')
-            %             xlim([0 11])
-            %             ylim([40 110])
-            %             ylabel('Percent correct')
-            %             xlabel('Block No')
-            %             title('Percent correct')
-            %percent_corr=percent_correct
+
             disp(percent_corr_str)
         end
 
