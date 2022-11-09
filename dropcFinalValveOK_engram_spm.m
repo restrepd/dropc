@@ -75,20 +75,12 @@ putvalue(handles.dio.Line(17:24),dataValue);
 
 
 %Turn on odor valve
-switch handles.dropcProg.whenOptoOn
-    case 1
-        %Turn on odor valve
-        dataValue=handles.dropcProg.odorValve;
-        dataValue=bitcmp(uint8(dataValue));
-        putvalue(handles.dio.Line(1:8),dataValue);
-    case 2
-        if handles.dropcProg.fracOptoOn(handles.dropcData.allTrialIndex+1)>0.3
-            %Turn on odor valve
-            dataValue=handles.dropcProg.odorValve;
-            dataValue=bitcmp(uint8(dataValue));
-            putvalue(handles.dio.Line(1:8),dataValue);
-        end
-end
+
+%Turn on odor valve
+dataValue=handles.dropcProg.odorValve;
+dataValue=bitcmp(uint8(dataValue));
+putvalue(handles.dio.Line(1:8),dataValue);
+
 
 
 
