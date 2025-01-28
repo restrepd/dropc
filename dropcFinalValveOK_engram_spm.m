@@ -1,4 +1,4 @@
-function finalValveOK = dropcFinalValveOK_engram(handles)
+function finalValveOK = dropcFinalValveOK_engram_spm(handles)
 %Opens final valve and odor on and finds out whtehr the mouse stays in the
 %odor sampling area
 

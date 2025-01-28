@@ -64,9 +64,12 @@ handles.dropcProg.timePerTrial=8;
 %If you want this computer to save the odor shorts make this variable one
 handles.dropcProg.sendShorts=0;
 
-%When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
-%Please note that the duration of the light is set by Master 8
-handles.dropcProg.whenOptoOn=0;
+%When do I turn the opto on? 0=no opto, 
+%1=regular spm
+%2=Stimulate with hologram in 30% of the trials
+handles.dropcProg.whenOptoOn=2;
+handles.dropcProg.fracOptoOn=0.3;
+
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
@@ -226,7 +229,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
-    dropcFinalValveOK_hf(handles);
+    dropcFinalValveOK_hf_engramv2(handles);
     
     %Odor on
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;

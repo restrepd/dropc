@@ -13,17 +13,23 @@ if left_right==0
     dataValue=handles.dropcDioOut.water_valve_left;
     dataValue=bitcmp(dataValue);
     putvalue(handles.dio.Line(17:24),dataValue);
+    
+    %Wait for rfTime
+    start_time=toc;
+    while (toc-start_time<handles.dropcProg.rfTime_left)
+    end
 else
     %Right
     dataValue=handles.dropcDioOut.water_valve_right;
     dataValue=bitcmp(dataValue);
     putvalue(handles.dio.Line(17:24),dataValue);
+    %Wait for rfTime
+    start_time=toc;
+    while (toc-start_time<handles.dropcProg.rfTime_right)
+    end
 end
 
-%Wait for rfTime
-start_time=toc;
-while (toc-start_time<handles.dropcProg.rfTime)
-end
+
 
 handles.dropcDigOut.draqPortStatus=uint8(0);
 dropcUpdateDraqPort(handles);

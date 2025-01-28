@@ -13,12 +13,17 @@ close all
 %To stop this program enter cntrl shift esc
 
 %First file name prefix for output
+handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\LLEDtest.mat';
+% handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\2-mm5FAD04Hippo-spm.mat';
+% handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\1-40hzls0.16pwer-mmOMP5FADHZHippo01-spm.mat';
+% handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\11-mmHippoFCM28-streamnoodor-spm.mat';
 % handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\4-sountetst-ttl-forclick.mat';
 % handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\6-pressureest-ttl.mat';
 % handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\12-mmHippoCamKGrin1-820nm-spm.mat';
 % handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\2-mmHippoCamKGrin1-PIDtest-odoropto.mat';
-handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\3-mmHippoCamKGrin1-CNO-spm.mat';
-% handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\1-mcherryctrl-test.mat';
+% handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\1-mmHippoCamKGrin1-CNO-spm.mat';
+% handles.dropcProg.output_file_prefix='C:\Users\Diego\Documents\Ming\1-mmHippoFCM19-miniscope-spm.mat';
+
 
 if strcmp(handles.dropcProg.output_file_prefix(end-3:end),'.mat')
     handles.dropcProg.output_file_prefix=handles.dropcProg.output_file_prefix(1:end-4);
@@ -28,15 +33,20 @@ end
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
-%Enter S+ valve (1,2,4,8,16,32,64,128) and odor name
+%Make sure these are different
 handles.dropcProg.splusOdorValve=uint8(64); %Make sure to use int8
-handles.dropcProg.splusName='Heptanal';
-% handles.dropcProg.splusName='52hepatanal48Ethylbutyrate';
+handles.dropcProg.sminusOdorValve=uint8(2); %Make sure to use int8
 
+handles.dropcProg.LED_is_Splus=1; %If 1 then LED is on for S+, otherwise LED is on for S-
 
-%Enter S- valve (1,2,4,8,16,32,64,128) and odor name
-handles.dropcProg.sminusOdorValve=uint8(128); %Make sure to use int8
-handles.dropcProg.sminusName='MO';
+if handles.dropcProg.LED_is_Splus==1
+    handles.dropcProg.splusName='LEDon';
+    handles.dropcProg.sminusName='LEDoff';
+else
+    handles.dropcProg.splusName='LEDoff';
+    handles.dropcProg.sminusName='LEDon';
+end
+
 % handles.dropcProg.sminusName='48hepatanal52Ethylbutyrate';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -54,8 +64,8 @@ handles.dropcProg.dt_ra=2;
 %Enter time to stop odor delivery in sec. Make >shortTime and <=dt_ra*noRAsegments+shortTime, normally 2.5 s
 handles.dropcProg.odor_stop=2.5;
 
-%Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+%Enter time for water delivery (sec, try 0.5 s, 0.3 for old tube)
+handles.dropcProg.rfTime=0.1;
 
 %Enter time per trial (sec, not less than 8 s)
 %Must be larger than TIME_POST+shortTime+dt_ra*dropcProg.noRAsegments+2
@@ -66,13 +76,13 @@ handles.dropcProg.sendShorts=0;
 
 %When do I turn the opto on? 0=no opto, 1=FV, 2=odor, 3=reward
 %Please note that the duration of the light is set by Master 8
-handles.dropcProg.whenOptoOn=0;
+% handles.dropcProg.whenOptoOn=0;
 
 %If you want the computer to punish the mouse for a false alarm by not
 %starting the next trial for a ceratin interval enter the interval in
 %seconds here.
-handles.dropcProg.dt_punish=15;
-handles.dropcProg.dt_iti=8;
+handles.dropcProg.dt_punish=25;
+handles.dropcProg.dt_iti=12;
 
 %Enter comment
 handles.comment='Test';
@@ -173,9 +183,24 @@ end
 %Initialize the DIO96H/50 before the mouse comes in
 handles=dropcInitializePortsNow(handles);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% 
 fprintf(1, '\nWaiting for trigger...\n ');
-    while getvalue(handles.dio.Line(34))==1
-    end
+%     while getvalue(handles.dio.Line(34))==1
+%     end
 tic
 fprintf(1, '\nStart of session...\n ');
 
@@ -226,7 +251,7 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     handles.dropcData.epochTypeOfOdor(handles.dropcData.epochIndex)=handles.dropcProg.typeOfOdor;
     handles.dropcData.epochTrial(handles.dropcData.epochIndex)=handles.dropcData.trialIndex;
     
-    dropcFinalValveOK_hf(handles);
+    dropcFinalValveOK_hf_LED(handles);
     
     %Odor on
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
@@ -241,12 +266,12 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     
     
     %Turn opto TTL off
-    if (handles.dropcProg.whenOptoOn==2)
+    
         dataValue=uint8(15);
         putvalue(handles.dio.Line(9:12),dataValue);
-    end
     
-    dropcTurnValvesOffNow(handles);
+    
+%     dropcTurnValvesOffNow(handles);
     
     %Odor off
     handles.dropcData.epochIndex=handles.dropcData.epochIndex+1;
@@ -259,13 +284,13 @@ while (stopTrials==0)&(handles.dropcData.trialIndex<200)
     disp(['Result of trial= ' num2str(trialResult)])
     handles.dropcData.trialScore(handles.dropcData.trialIndex)=trialResult;
     handles=dropcReinforceAppropriately_hf(handles);
-    
-    %Turn opto TTL off
-    if (handles.dropcProg.whenOptoOn==3)
-        dataValue=uint8(15);
-        putvalue(handles.dio.Line(9:12),dataValue);
-    end
-    
+%     
+%     %Turn opto TTL off
+%     if (handles.dropcProg.whenOptoOn==3)
+%         dataValue=uint8(15);
+%         putvalue(handles.dio.Line(9:12),dataValue);
+%     end
+%     
     handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
     dropcTurnValvesOffNow(handles);
     

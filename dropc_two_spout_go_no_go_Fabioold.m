@@ -7,6 +7,9 @@
 clear all
 close all
 
+%Start the random number generator
+rng('shuffle')
+
 %% Setup the figure
 % figure(1)
 % hold on
@@ -19,28 +22,28 @@ close all
 
 %First file name for output
 %IMPORTANT: This should be a .mat file
-handles.dropcProg.output_file='C:\Users\Mini Fabio\Desktop\DEMJ3\051722_training_odor20.mat';
+handles.dropcProg.output_file='C:\Users\Mini Fabio\Documents\Fabio_olfatometro_2021\Data\20230413_testing_leftside_diego_';
 %handles.dropcProg.output_file='/Users/restrepd/Documents/Projects/testdropc/m01.mat';
 
 %Reinforce on S+ only? (1=yes, go-no go, 0=no, reinforce both, go-go)
 handles.dropcProg.go_nogo=1;
 
 %Reward for odor or for space?
-handles.dropcProg.reward_location_vs_odor=2; 
+handles.dropcProg.reward_location_vs_odor=1; 
 
-%1=reward for licks regardless of location (begin), 
-%2=reward for odor 
-%3=reward for location, 
-%4=reward for odor always on the left (begin stage 2)
-%5=reward for odor always on the right (begin stage 3)
+%1=reward for S+ licks regardless of location (go-no go begin), 
+%2=reward for odor on the right side go-no go
+%3=reward for odor on the left side go-no go
+%4=reward for left side go-go
+%5=reward for right side go-go
 %6=Fabio's S+ goes from one side to the other 
 
 %Which side is rewarded if reward is given based on spout location
-handles.dropcProg.reward_left_vs_right=1; %0= reward for licks on left spout, 1= reward for licks on right spout
+handles.dropcProg.reward_left_vs_right=0; %0= reward for licks on left spout, 1= reward for licks on right spout
 
 switch handles.dropcProg.reward_location_vs_odor
     case 1
-        disp(['dropc_two_spout_odor rewarded on both spouts for begin'])
+        disp(['dropc_two_spout_go_no_go reward for licks regardless of location (go-no go begin)'])
     case 2
         disp(['dropc_two_spout_odor rewarded for the odor'])
     case 3
@@ -62,17 +65,17 @@ end
 handles.dropcProg.typeOfOdor=1; %handles.dropcProg.splusOdor=1;
 
 %Enter right valves (8,16,32) and odor name
-handles.dropcProg.rewardedOdorValveRight=uint8(8); %Make sure to use int8
-handles.dropcProg.rewardedOdorNameRight='IA';
+handles.dropcProg.rewardedOdorValveRight=uint8(32); %Make sure to use int8
+handles.dropcProg.rewardedOdorNameRight='MO';
 
-handles.dropcProg.otherOdorValveRight=uint8(32); %Make sure to use int8
-handles.dropcProg.otherOdorNameRight='MO';
+handles.dropcProg.otherOdorValveRight=uint8(16); %Make sure to use int8
+handles.dropcProg.otherOdorNameRight='ISO';
 
 %Enter left valves (1,2,4) and odor name
 handles.dropcProg.rewardedOdorValveLeft=uint8(2); %Make sure to use int8
-handles.dropcProg.rewardedOdorNameLeft='IA';
+handles.dropcProg.rewardedOdorNameLeft='ACT';
 
-handles.dropcProg.otherOdorValveLeft=uint8(1); %Make sure to use int8
+handles.dropcProg.otherOdorValveLeft=uint8(4); %Make sure to use int8
 handles.dropcProg.otherOdorNameLeft='MO';
 
 %Enter final valve interval in sec (1.5 sec is usual)
@@ -82,7 +85,8 @@ handles.dropcProg.fvtime=1.5;
 handles.dropcProg.shortTime=0.1;
 
 %Enter number of response area segments (usually 4, must be less than 6)
-handles.dropcProg.noRAsegments=1;
+handles.dropcProg.noRAsegments=2;
+% noRA_segments=handles.dropcProg.noRAsegments;
 
 %Enter response area DT for each response area segment (0.5 sec is usual)
 handles.dropcProg.dt_ra=1;
@@ -136,7 +140,8 @@ block=0;
 
 % dropcData
 %Fellows random numbers are started randomly
-handles.dropcData.fellowsNo=20*ceil(10*rand(1))-19;
+handles.dropcData.fellowsNoOdor=randn(1,300);
+handles.dropcData.fellowsNoSide=randn(1,300);
 
 handles.dropcData.trialIndex=1;     %These are all trials excluding shorts
 handles.dropcData.allTrialIndex=0;  %These are all trials including short and long trials
@@ -260,10 +265,13 @@ if run_program==1
         %Do one trial
         
         fprintf('\n')
+        handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
+
         %Decide whether rewarded odor is on the left or right
         switch handles.dropcProg.reward_location_vs_odor
-            case {1, 2, 3}
-                if (handles.dropcProg.randomFellows(handles.dropcData.fellowsNo) == 1)
+            case {1,2,3,4,5}
+                %Which side for the odor
+                if (handles.dropcData.fellowsNoOdor(handles.dropcData.trialIndex)>0)
                     %Rewarded odor on the left side
                     handles.dropcProg.rewarded_odor_side=0; %Rewarded odor is on the left side
                     handles.dropcProg.odorValveLeft=handles.dropcProg.rewardedOdorValveLeft;
@@ -280,171 +288,269 @@ if run_program==1
                     handles.dropcProg.left_typeOfOdor=handles.dropcProg.otherOdorNameLeft;
                     disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the right'])
                 end
-            case 4
-                %Rewarded odor on the left side
-                handles.dropcProg.rewarded_odor_side=0; %Rewarded odor is on the left side
-                handles.dropcProg.odorValveLeft=handles.dropcProg.rewardedOdorValveLeft;
-                handles.dropcProg.left_typeOfOdor=handles.dropcProg.rewardedOdorNameLeft;
-                handles.dropcProg.odorValveRight=handles.dropcProg.otherOdorValveRight;
-                handles.dropcProg.right_typeOfOdor=handles.dropcProg.otherOdorNameRight;
-                disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the left'])
-            case 5
-                %Rewarded odor on the right side
-                handles.dropcProg.rewarded_odor_side=1; %Rewarded odor is on the right side
-                handles.dropcProg.odorValveRight=handles.dropcProg.rewardedOdorValveRight;
-                handles.dropcProg.right_typeOfOdor=handles.dropcProg.rewardedOdorNameRight;
-                handles.dropcProg.odorValveLeft=handles.dropcProg.otherOdorValveLeft;
-                handles.dropcProg.left_typeOfOdor=handles.dropcProg.otherOdorNameLeft;
-                disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the right'])
-            case 6
-                %Rewarded odor on the right side
-                handles.dropcProg.rewarded_odor_side=next_rewarded_odor_side; %Rewarded odor is on the right side
-                handles.dropcProg.odorValveRight=handles.dropcProg.rewardedOdorValveRight;
-                handles.dropcProg.right_typeOfOdor=handles.dropcProg.rewardedOdorNameRight;
-                handles.dropcProg.odorValveLeft=handles.dropcProg.otherOdorValveLeft;
-                handles.dropcProg.left_typeOfOdor=handles.dropcProg.otherOdorNameLeft;
-                
-                if trialResult==1
-                    if (next_rewarded_odor_side==1)
-                        disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the right'])
-                        next_rewarded_odor_side=0;
-                    else
-                        disp(['Trial No: ' num2str(handles.dropcData.trialIndex) '; Rewarded odor on the left'])
-                        next_rewarded_odor_side=1;
-                    end
-                end
-
 
         end
-        
-        handles.dropcData.fellowsNo=handles.dropcData.fellowsNo+1;
-        if handles.dropcData.fellowsNo==201
-            handles.dropcData.fellowsNo=1;
-        end
-        
-        
-        %Now run the trial
-        
-        
-        
-        %         resultOfTrial=-2;
-        %         while (resultOfTrial == -2)
-        %While mouse is doing short samples
-        
-        
+
         
         handles.dropcData.ii_lick(handles.dropcData.trialIndex)=0;
-        
-        dropcFinalValveOK_two_spout_new(handles);
-        %This mouse stayed on during the final valve; do the
-        %single trial!
-        
-        %                 %Wait till the mouse licks on either spout
-        %                 while (sum(getvalue(handles.dio.Line(27:28)))==2)
-        %                 end
-        
-        left_bit=1;
-        right_bit=1;
-        
-        while (left_bit==1)&(right_bit==1)
-            left_bit=getvalue(handles.dio.Line(28)); %if this is zero the mouse licks left
-            right_bit=getvalue(handles.dio.Line(27)); %if this is zero the mouse licks right
+
+        short_trial=1;
+        while short_trial==1
+            %Wait till the mouse licks on either spout
+            while (sum(getvalue(handles.dio.Line(27:28)))==2)
+            end
+
+            finalValveOK=dropcFinalValveOK_two_spout_go_no_go(handles);
+            %This mouse stayed on during the final valve; do the
+            %single trial!
+
+            if finalValveOK==1
+                short_trial=0;
+            end
         end
-        
+
+
+
+        RA_responses=zeros(1,handles.dropcProg.noRAsegments);
+
+        for noRA_segments=1:handles.dropcProg.noRAsegments
+
+            this_toc=toc;
+            while toc-this_toc<handles.dropcProg.dt_ra
+                if handles.dropcProg.rewarded_odor_side==0
+                    %Rewarded odor on the left side
+                    left_bit=getvalue(handles.dio.Line(28)); %if this is zero the mouse licks left
+                    if left_bit==0
+                        RA_responses(noRA_segments)=1;
+                        left_right=0;
+                    end
+                else
+                    right_bit=getvalue(handles.dio.Line(27)); %if this is zero the mouse licks right
+                    if right_bit==0
+                        left_right=1;
+                        RA_responses(noRA_segments)=1;
+                    end
+                end
+            end
+
+        end
+
         trialResult=0;
-        
-        switch handles.dropcProg.reward_location_vs_odor
-            case 1
-                %Begin, mouse gets water wherever s/he licks
-                if left_bit==0
-                    trialResult=1;
-                    left_right=0;
-                    dropcReinforceNow_two_spout(handles,left_right);
-                    disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
-                end
-                
-                if right_bit==0
-                    trialResult=1;
-                    left_right=1;
-                    dropcReinforceNow_two_spout(handles,left_right);
-                    disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
-                end
-            case {2,4,5,6}
-                %Reward odor delivery
-                if left_bit==0
-                    left_right=0;
-                end
-                if right_bit==0
-                    left_right=1;
-                end
-                if (handles.dropcProg.rewarded_odor_side==0)&(left_bit==0)
-                    trialResult=1;
-                    left_right=0;
-                    dropcReinforceNow_two_spout(handles,left_right);
-                    disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
-                else
-                    disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
-                    
-                    %Do delay if needed
-                    start_dt_punish=toc;
-                    while (toc-start_dt_punish)<handles.dropcProg.dt_punish
+
+        if left_right==0
+            %Mouse licking on the left side
+            if handles.dropcProg.rewarded_odor_side==0
+                disp(['Mouse engaged in left port during S+ trial '])
+                spm=1;
+                if sum(RA_responses)==length(RA_responses)
+                    %This is a hit
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=8;
+                    dropcUpdateDraqPort(handles);
+                    this_toc=toc
+                    while toc-this_toc<0.1
                     end
-                    
-                end
-                
-                if (handles.dropcProg.rewarded_odor_side==1)&(right_bit==0)
-                    trialResult=1;
-                    left_right=1;
                     dropcReinforceNow_two_spout(handles,left_right);
-                    disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
-                else
-                    disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
-                    %Do delay if needed
-                    start_dt_punish=toc;
-                    while (toc-start_dt_punish)<handles.dropcProg.dt_punish
-                    end
-                end
-            case 3
-                %Reward the side
-                  if left_bit==0
-                    left_right=0;
-                end
-                if right_bit==0
-                    left_right=1;
-                end
-                if (handles.dropcProg.reward_left_vs_right==0)&(left_bit==0)
+                    disp(['Left port, hit '])
                     trialResult=1;
-                    left_right=0;
-                    dropcReinforceNow_two_spout(handles,left_right);
-                    disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
                 else
-                    disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
-                    %Do delay if needed
-                    start_dt_punish=toc;
-                    while (toc-start_dt_punish)<handles.dropcProg.dt_punish
-                    end
+                    %This is a miss
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=9;
+                    dropcUpdateDraqPort(handles);
+                    disp(['Left port, miss '])
                 end
-                
-                if (handles.dropcProg.reward_left_vs_right==1)&(right_bit==0)
+            else
+                disp(['Mouse engaged in left port during S- trial '])
+                spm=0;
+                    if sum(RA_responses)==length(RA_responses)
+                    %This is a false alarm
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=10;
+                    dropcUpdateDraqPort(handles);
+                    disp(['Left port, FA '])
+                else
+                    %This is a correct rejection
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=11;
+                    dropcUpdateDraqPort(handles);
+                    disp(['Left port, CR '])
                     trialResult=1;
-                    left_right=1;
-                    dropcReinforceNow_two_spout(handles,left_right);
-                    disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
-                else
-                    disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
-                    %Do delay if needed
-                    start_dt_punish=toc;
-                    while (toc-start_dt_punish)<handles.dropcProg.dt_punish
-                    end
                 end
+            end
+        else
+             %Mouse licking on the right side
+            if handles.dropcProg.rewarded_odor_side==0
+                disp(['Mouse engaged in right port during S- trial '])
+                spm=0;
+                   if sum(RA_responses)==length(RA_responses)
+                    %This is a false alarm
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=14;
+                    dropcUpdateDraqPort(handles);
+                    disp(['Right port, FA '])
+                else
+                    %This is a correct rejection
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=15;
+                    dropcUpdateDraqPort(handles);
+                    disp(['Right port, CR '])
+                    trialResult=1;
+                end
+
+            else
+                disp(['Mouse engaged in right port during S+ trial '])
+                spm=1;
+                if sum(RA_responses)==length(RA_responses)
+                    %This is a hit
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=12;
+                    dropcUpdateDraqPort(handles);
+                    this_toc=toc
+                    while toc-this_toc<0.1
+                    end
+                    dropcReinforceNow_two_spout(handles,left_right);
+                    disp(['Right port, hit '])
+                    trialResult=1;
+                else
+                    %This is a miss
+                    %Notify INTAN
+                    handles.dropcDigOut.draqPortStatus=13;
+                    dropcUpdateDraqPort(handles);
+                    disp(['Right port, miss '])
+                end
+            end
         end
-        
+
+% 
+%         if sum(RA_responses)==length(RA_responses)
+%             if handles.dropcProg.rewarded_odor_side==0
+%                 %Rewarded odor on the left side
+%                 left_right=0;
+%                 dropcReinforceNow_two_spout(handles,left_right);
+%                 disp(['Left port, mouse licked for S+ on the left side '])
+%             else
+%                 left_right=1;
+%                 dropcReinforceNow_two_spout(handles,left_right);
+%                 disp(['Right port, mouse licked for S+ right side '])
+%             end
+%         else
+%             if (handles.dropcData.fellowsNoOdor(handles.dropcData.trialIndex)>0)
+%                 %Rewarded odor on the left side
+%                 left_right=0;
+% 
+%                 disp(['Left port, mouse licked for S+ ' num2str(trialResult) ' mouse rewarded'])
+%             else
+%                 left_right=1;
+%                 dropcReinforceNow_two_spout(handles,left_right);
+%                 disp(['Right port, mouse licked for S+= ' num2str(trialResult) ' mouse rewarded'])
+%             end
+%         end
+% 
+% 
+%         left_bit=1;
+%         right_bit=1;
+%         
+%         while (left_bit==1)&(right_bit==1)
+%             left_bit=getvalue(handles.dio.Line(28)); %if this is zero the mouse licks left
+%             right_bit=getvalue(handles.dio.Line(27)); %if this is zero the mouse licks right
+%         end
+%                 end
+%         trialResult=0;
+%         
+%         switch handles.dropcProg.reward_location_vs_odor
+%             case 1
+%                 %Begin, mouse gets water wherever s/he licks
+%                 if left_bit==0
+%                     trialResult=1;
+%                     left_right=0;
+%                     dropcReinforceNow_two_spout(handles,left_right);
+%                     disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
+%                 end
+%                 
+%                 if right_bit==0
+%                     trialResult=1;
+%                     left_right=1;
+%                     dropcReinforceNow_two_spout(handles,left_right);
+%                     disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
+%                 end
+%             case {2,4,5,6}
+%                 %Reward odor delivery
+%                 if left_bit==0
+%                     left_right=0;
+%                 end
+%                 if right_bit==0
+%                     left_right=1;
+%                 end
+%                 if (handles.dropcProg.rewarded_odor_side==0)&(left_bit==0)
+%                     trialResult=1;
+%                     left_right=0;
+%                     dropcReinforceNow_two_spout(handles,left_right);
+%                     disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
+%                 else
+%                     disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
+%                     
+%                     %Do delay if needed
+%                     start_dt_punish=toc;
+%                     while (toc-start_dt_punish)<handles.dropcProg.dt_punish
+%                     end
+%                     
+%                 end
+%                 
+%                 if (handles.dropcProg.rewarded_odor_side==1)&(right_bit==0)
+%                     trialResult=1;
+%                     left_right=1;
+%                     dropcReinforceNow_two_spout(handles,left_right);
+%                     disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
+%                 else
+%                     disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
+%                     %Do delay if needed
+%                     start_dt_punish=toc;
+%                     while (toc-start_dt_punish)<handles.dropcProg.dt_punish
+%                     end
+%                 end
+%             case 3
+%                 %Reward the side
+%                   if left_bit==0
+%                     left_right=0;
+%                 end
+%                 if right_bit==0
+%                     left_right=1;
+%                 end
+%                 if (handles.dropcProg.reward_left_vs_right==0)&(left_bit==0)
+%                     trialResult=1;
+%                     left_right=0;
+%                     dropcReinforceNow_two_spout(handles,left_right);
+%                     disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
+%                 else
+%                     disp(['Left port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
+%                     %Do delay if needed
+%                     start_dt_punish=toc;
+%                     while (toc-start_dt_punish)<handles.dropcProg.dt_punish
+%                     end
+%                 end
+%                 
+%                 if (handles.dropcProg.reward_left_vs_right==1)&(right_bit==0)
+%                     trialResult=1;
+%                     left_right=1;
+%                     dropcReinforceNow_two_spout(handles,left_right);
+%                     disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse rewarded'])
+%                 else
+%                     disp(['Right port, mouse licked= ' num2str(trialResult) ' mouse not rewarded'])
+%                     %Do delay if needed
+%                     start_dt_punish=toc;
+%                     while (toc-start_dt_punish)<handles.dropcProg.dt_punish
+%                     end
+%                 end
+%         end
+%                 
         dropcTurnValvesOffNow(handles);
         
 %         [trialResult, left_right]=dropcDoesMouseRespondNow_two_spout(handles);
         handles.dropcData.allTrialIndex=handles.dropcData.allTrialIndex+1;
         handles.dropcData.allTrialResult(handles.dropcData.allTrialIndex)=trialResult;
         handles.dropcData.allTrial_left_right(handles.dropcData.allTrialIndex)=left_right;
+        handles.dropcData.allTrial_spm(handles.dropcData.allTrialIndex)=spm;
         handles.dropcData.allTrialTime(handles.dropcData.allTrialIndex)=toc;
         handles.dropcData.allTrialLeftTypeOfOdor{handles.dropcData.allTrialIndex}=handles.dropcProg.left_typeOfOdor;
         handles.dropcData.allTrialRightTypeOfOdor{handles.dropcData.allTrialIndex}=handles.dropcProg.right_typeOfOdor;
@@ -518,7 +624,7 @@ if run_program==1
         save(handles.dropcProg.output_file,'handles');
         
         handles.dropcData.trialIndex=handles.dropcData.trialIndex+1;
-    end
+    
     
 end
 
@@ -526,3 +632,4 @@ delete(handles.dio)
 
 clear handles
 
+end

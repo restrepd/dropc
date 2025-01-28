@@ -1,4 +1,4 @@
-function finalValveOK = dropcFinalValveOK_two_spout(handles)
+function finalValveOK = dropcFinalValveOK_two_spout_new(handles)
 %Diverts final valve towards the exhaust, turns valve odor on, finds out whther the mouse stays in the
 %odor sampling area and turns the final valve back towards the port
 

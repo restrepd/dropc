@@ -3,14 +3,16 @@
 % Delivers reinforcement water to calibrate water deivery
 %
 %
-
+tic
 handles.no_valve_openings=50;
 handles.sec_between_valve_openings=1;
 
 %Enter time for water delivery (sec, try 0.5 s)
-handles.dropcProg.rfTime=0.3;
+handles.dropcProg.rfTime=0.15;
 
-handles.dropcDioOut.water_valve=uint8(1);
+%To open pin 17 enter 1
+%To open pin 19 (2nd water valve in two pipe) enter 8
+handles.dropcDioOut.water_valve=uint8(8);
 
 handles=dropcInitializePortsNow(handles);
 
